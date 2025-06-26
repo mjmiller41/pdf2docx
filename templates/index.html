@@ -95,11 +95,11 @@
             Convert PDF files to DOCX format with template and font support
         </p>
         
-        {% with messages = get_flashed_messages() %}
+        {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
                 <div class="flash-messages">
-                    {% for message in messages %}
-                        <div class="flash-message flash-error">{{ message }}</div>
+                    {% for category, message in messages %}
+                        <div class="flash-message flash-{{ category if category in ['success', 'warning'] else 'error' }}">{{ message }}</div>
                     {% endfor %}
                 </div>
             {% endif %}
@@ -164,6 +164,8 @@
                 <li>✅ Template margins and formatting</li>
                 <li>✅ Custom font application</li>
                 <li>✅ Image cropping and resizing</li>
+                <li>✅ Automatic comparison with original PDF</li>
+                <li>✅ Quality scoring and automatic improvements</li>
                 <li>✅ Page range selection</li>
                 <li>✅ Password-protected PDFs</li>
                 <li>✅ Proper content fitting within margins</li>
