@@ -24,7 +24,7 @@ except ImportError:
     from flask import Flask, render_template, request, redirect, url_for, flash, send_file, jsonify
 
 # Import our modern converter
-from modern_pdf2docx_converter import ModernPDF2DOCXConverter
+from converters.modern_pdf2docx_converter import ModernPDF2DOCXConverter
 
 app = Flask(__name__)
 app.secret_key = 'modern_pdf2docx_converter_secret_key'

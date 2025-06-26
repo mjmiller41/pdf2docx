@@ -6,4 +6,4 @@ echo "Open your browser and go to: http://localhost:5000"
 echo "Press Ctrl+C to stop the server"
 echo ""
 
-python3 web_interface.py
+python3 modern_web_interface.py

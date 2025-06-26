@@ -8,27 +8,10 @@ A completely rewritten converter using:
 - Proper spacing, layout, and formatting preservation
 """
 
-import os
 import sys
-from pathlib import Path
-from typing import List, Dict, Optional, Tuple, Any
 import logging
-import re
-from io import BytesIO
-
-# Core libraries
-try:
-    import fitz  # PyMuPDF
-    from docx import Document
-    from docx.shared import Inches, Pt, RGBColor
-    from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_LINE_SPACING
-    from docx.enum.section import WD_ORIENT, WD_SECTION
-    from docx.oxml.shared import OxmlElement, qn
-    from PIL import Image
-except ImportError as e:
-    print(f"Missing required library: {e}")
-    print("Install with: pip install PyMuPDF python-docx pillow")
-    sys.exit(1)
+from pdf_extraction import PDFExtractor
+from docx_creation import DOCXCreator
 
 # Set up logging
 logging.basicConfig(level=logging.INFO, format='[%(levelname)s] %(message)s')
@@ -36,95 +19,34 @@ logger = logging.getLogger(__name__)
 
 class ModernPDF2DOCXConverter:
     """
-    Modern PDF to DOCX converter that properly extracts text and applies template formatting
+    Modern PDF to DOCX converter using modular extraction and creation components
     """
     
     def __init__(self):
-        self.pdf_reader = None
-        self.docx_document = None
-        self.template_document = None
-        self.custom_fonts = []
+        self.extractor = PDFExtractor()
+        self.creator = DOCXCreator()
         self.conversion_stats = {
             'pages_processed': 0,
             'text_blocks_extracted': 0,
-            'images_extracted': 0,
-            'spacing_fixes_applied': 0
+            'images_extracted': 0
         }
     
     def load_template(self, template_path: str) -> bool:
         """Load a DOCX template to apply formatting"""
-        try:
-            if template_path and Path(template_path).exists():
-                self.template_document = Document(template_path)
-                logger.info(f"Loaded template: {template_path}")
-                return True
-            return False
-        except Exception as e:
-            logger.error(f"Failed to load template {template_path}: {e}")
-            return False
+        self.creator.template_path = template_path
+        return self.creator.load_template(template_path)
     
     def register_fonts(self, font_paths: List[str]) -> None:
         """Register custom fonts for use in the document"""
-        if not font_paths:
-            return
-        
-        for font_path in font_paths:
-            if Path(font_path).exists():
-                font_name = Path(font_path).stem
-                self.custom_fonts.append({
-                    'name': font_name,
-                    'path': font_path
-                })
-                logger.info(f"Registered font: {font_name}")
+        self.creator.register_fonts(font_paths)
     
     def extract_pdf_content(self, pdf_path: str, password: str = None, 
                           start_page: int = 0, end_page: int = None, 
                           pages: List[int] = None) -> Dict:
-        """Extract text and images from PDF using PyMuPDF"""
-        try:
-            self.pdf_document = fitz.open(pdf_path)
-            
-            # Handle password protection
-            if self.pdf_document.needs_pass:
-                if password:
-                    if not self.pdf_document.authenticate(password):
-                        raise ValueError("Invalid password provided")
-                else:
-                    raise ValueError("PDF is encrypted but no password provided")
-            
-            total_pages = len(self.pdf_document)
-            logger.info(f"PDF has {total_pages} pages")
-            
-            # Determine which pages to process
-            if pages:
-                page_indices = [p for p in pages if 0 <= p < total_pages]
-            else:
-                start = max(0, start_page)
-                end = min(total_pages, end_page) if end_page else total_pages
-                page_indices = list(range(start, end))
-            
-            extracted_content = {
-                'pages': [],
-                'total_pages': len(page_indices),
-                'page_indices': page_indices
-            }
-            
-            # Extract content from each page
-            for page_idx in page_indices:
-                page = self.pdf_document[page_idx]
-                page_content = self._extract_page_content(page, page_idx)
-                extracted_content['pages'].append(page_content)
-                self.conversion_stats['pages_processed'] += 1
-            
-            logger.info(f"Extracted content from {len(page_indices)} pages")
-            return extracted_content
-            
-        except Exception as e:
-            logger.error(f"Failed to extract PDF content: {e}")
-            return {}
-        finally:
-            if hasattr(self, 'pdf_document'):
-                self.pdf_document.close()
+        """Extract text and images from PDF using extraction module"""
+        return self.extractor.extract_content(
+            pdf_path, password, start_page, end_page, pages
+        )
     
     def _extract_page_content(self, page, page_idx: int) -> Dict:
         """Extract text and images from a single PDF page"""
@@ -259,31 +181,9 @@ class ModernPDF2DOCXConverter:
     
     def create_docx_document(self, extracted_content: Dict, template_path: str = None) -> Document:
         """Create a DOCX document from extracted PDF content"""
-        
-        # Load template or create new document
-        if template_path and self.load_template(template_path):
-            # Create new document based on template
-            self.docx_document = Document(template_path)
-            # Clear existing content but keep styles and formatting
-            for paragraph in self.docx_document.paragraphs[:]:
-                p = paragraph._element
-                p.getparent().remove(p)
-        else:
-            # Create new document
-            self.docx_document = Document()
-        
-        # Apply template formatting if available
-        self._apply_template_formatting(extracted_content)
-        
-        # Process each page
-        for page_content in extracted_content['pages']:
-            self._process_page_content(page_content)
-            
-            # Add page break between pages (except for the last page)
-            if page_content != extracted_content['pages'][-1]:
-                self.docx_document.add_page_break()
-        
-        return self.docx_document
+        if template_path:
+            self.load_template(template_path)
+        return self.creator.create_from_pdf_data(extracted_content)
     
     def _apply_template_formatting(self, extracted_content: Dict) -> None:
         """Apply template formatting to the document"""
@@ -602,32 +502,14 @@ class ModernPDF2DOCXConverter:
                           password: str = None, start_page: int = 0, 
                           end_page: int = None, pages: List[int] = None) -> Dict:
         """
-        Convert PDF to DOCX with proper text extraction and template formatting
+        Convert PDF to DOCX using modular extraction and creation
         
-        Args:
-            pdf_path: Path to input PDF file
-            output_path: Path for output DOCX file
-            template_path: Optional path to DOCX template
-            font_paths: Optional list of custom font files
-            password: Optional PDF password
-            start_page: Starting page (0-indexed)
-            end_page: Ending page (exclusive)
-            pages: Specific pages to convert
-            
-        Returns:
-            Dict with conversion results
+        Args: [same as before]
+        Returns: [same as before]
         """
         
         try:
             logger.info(f"Starting conversion: {pdf_path} -> {output_path}")
-            
-            # Reset stats
-            self.conversion_stats = {
-                'pages_processed': 0,
-                'text_blocks_extracted': 0,
-                'images_extracted': 0,
-                'spacing_fixes_applied': 0
-            }
             
             # Register custom fonts
             if font_paths:
@@ -651,13 +533,11 @@ class ModernPDF2DOCXConverter:
             result = {
                 'status': 'success',
                 'output_path': output_path,
-                'stats': self.conversion_stats,
+                'stats': self.extractor.conversion_stats,  # Use extractor's stats
                 'pages_converted': extracted_content['total_pages']
             }
             
             logger.info(f"Conversion completed successfully!")
-            logger.info(f"Stats: {self.conversion_stats}")
-            
             return result
             
         except Exception as e:

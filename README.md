@@ -217,12 +217,15 @@ The modern converter provides detailed statistics:
 pdf2docx/
 ├── modern_pdf2docx_converter.py    # Modern converter (recommended)
 ├── modern_web_interface.py         # Modern web interface
-├── simple_pdf2docx_converter.py    # Simple converter
-├── advanced_pdf2docx_converter.py  # Advanced converter
-├── pdf2docx_converter.py           # Legacy converter
 ├── requirements.txt                # Dependencies
 ├── setup.py                        # Installation script
-└── README.md                       # This file
+├── README.md                       # This file
+├── SOLUTION_SUMMARY.md             # Technical documentation
+├── test_*.py                       # Test scripts
+└── utilities/                      # Supporting utilities
+    ├── enhanced_text_extractor.py
+    ├── debug_pdf.py
+    └── final_comparison.py
 ```
 
 ### Testing

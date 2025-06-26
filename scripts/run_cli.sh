@@ -11,4 +11,4 @@ if [ $# -lt 2 ]; then
     exit 1
 fi
 
-python3 simple_pdf2docx_converter.py "$@"
+python3 modern_pdf2docx_converter.py "$@"
