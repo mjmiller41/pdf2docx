@@ -10,76 +10,176 @@ A completely rewritten converter using:
 
 import sys
 import logging
-from pdf_extraction import PDFExtractor
-from docx_creation import DOCXCreator
+import re
+from collections.abc import Sequence, Mapping, Callable
+from typing import Any, TypeVar, ParamSpec, Optional, Union
+from pathlib import Path
+from io import BytesIO
+from dataclasses import dataclass
+
+# Core libraries
+try:
+    import fitz  # PyMuPDF
+    from docx import Document
+    from docx.shared import Inches, Pt, RGBColor
+    from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_LINE_SPACING
+    from docx.enum.section import WD_ORIENT, WD_SECTION
+    from docx.oxml.shared import OxmlElement, qn
+    from PIL import Image
+except ImportError as e:
+    print(f"Missing required library: {e}")
+    print("Install with: pip install PyMuPDF python-docx pillow")
+    sys.exit(1)
 
 # Set up logging
 logging.basicConfig(level=logging.INFO, format='[%(levelname)s] %(message)s')
 logger = logging.getLogger(__name__)
 
+# Type aliases
+PDFPage = fitz.Page
+TextBlock = dict[str, Any]
+ImageData = dict[str, Any]
+ExtractedContent = dict[str, Any]
+ConversionResult = dict[str, Any]
+
+T = TypeVar('T')
+P = ParamSpec('P')
+
+@dataclass
+class FontInfo:
+    name: str
+    path: str
+
+@dataclass
+class PageContent:
+    page_number: int
+    text_blocks: list[TextBlock]
+    images: list[ImageData]
+    page_size: dict[str, float]
+
+@dataclass
+class ParagraphData:
+    text_parts: list[TextBlock]
+    y_position: Optional[float] = None
+    font_info: dict[str, Any] = None
+
 class ModernPDF2DOCXConverter:
     """
-    Modern PDF to DOCX converter using modular extraction and creation components
+    Modern PDF to DOCX converter that properly extracts text and applies template formatting
     """
     
     def __init__(self):
-        self.extractor = PDFExtractor()
-        self.creator = DOCXCreator()
-        self.conversion_stats = {
+        self.pdf_document: Optional[fitz.Document] = None
+        self.docx_document: Optional[Document] = None
+        self.template_document: Optional[Document] = None
+        self.custom_fonts: list[FontInfo] = []
+        self.conversion_stats: dict[str, int] = {
             'pages_processed': 0,
             'text_blocks_extracted': 0,
-            'images_extracted': 0
+            'images_extracted': 0,
+            'spacing_fixes_applied': 0
         }
     
-    def load_template(self, template_path: str) -> bool:
+    def load_template(self, template_path: Optional[str]) -> bool:
         """Load a DOCX template to apply formatting"""
-        self.creator.template_path = template_path
-        return self.creator.load_template(template_path)
+        try:
+            if template_path and Path(template_path).exists():
+                self.template_document = Document(template_path)
+                logger.info(f"Loaded template: {template_path}")
+                return True
+            return False
+        except Exception as e:
+            logger.error(f"Failed to load template {template_path}: {e}")
+            return False
     
-    def register_fonts(self, font_paths: List[str]) -> None:
+    def register_fonts(self, font_paths: Optional[list[str]]) -> None:
         """Register custom fonts for use in the document"""
-        self.creator.register_fonts(font_paths)
+        if not font_paths:
+            return
+        
+        for font_path in font_paths:
+            if Path(font_path).exists():
+                font_name = Path(font_path).stem
+                self.custom_fonts.append(FontInfo(
+                    name=font_name,
+                    path=font_path
+                ))
+                logger.info(f"Registered font: {font_name}")
     
-    def extract_pdf_content(self, pdf_path: str, password: str = None, 
-                          start_page: int = 0, end_page: int = None, 
-                          pages: List[int] = None) -> Dict:
-        """Extract text and images from PDF using extraction module"""
-        return self.extractor.extract_content(
-            pdf_path, password, start_page, end_page, pages
-        )
+    def extract_pdf_content(
+        self, 
+        pdf_path: str, 
+        password: Optional[str] = None, 
+        start_page: int = 0, 
+        end_page: Optional[int] = None, 
+        pages: Optional[list[int]] = None
+    ) -> ExtractedContent:
+        """Extract text and images from PDF using PyMuPDF"""
+        try:
+            self.pdf_document = fitz.open(pdf_path)
+            
+            # Handle password protection
+            if self.pdf_document.needs_pass:
+                if password:
+                    if not self.pdf_document.authenticate(password):
+                        raise ValueError("Invalid password provided")
+                else:
+                    raise ValueError("PDF is encrypted but no password provided")
+            
+            total_pages = len(self.pdf_document)
+            logger.info(f"PDF has {total_pages} pages")
+            
+            # Determine which pages to process
+            page_indices: list[int]
+            if pages:
+                page_indices = [p for p in pages if 0 <= p < total_pages]
+            else:
+                start = max(0, start_page)
+                end = min(total_pages, end_page) if end_page else total_pages
+                page_indices = list(range(start, end))
+            
+            extracted_content: ExtractedContent = {
+                'pages': [],
+                'total_pages': len(page_indices),
+                'page_indices': page_indices
+            }
+            
+            # Extract content from each page
+            for page_idx in page_indices:
+                page = self.pdf_document[page_idx]
+                page_content = self._extract_page_content(page, page_idx)
+                extracted_content['pages'].append(page_content)
+                self.conversion_stats['pages_processed'] += 1
+            
+            logger.info(f"Extracted content from {len(page_indices)} pages")
+            return extracted_content
+            
+        except Exception as e:
+            logger.error(f"Failed to extract PDF content: {e}")
+            return {}
+        finally:
+            if hasattr(self, 'pdf_document'):
+                self.pdf_document.close()
     
-    def _extract_page_content(self, page, page_idx: int) -> Dict:
+    def _extract_page_content(self, page: PDFPage, page_idx: int) -> PageContent:
         """Extract text and images from a single PDF page"""
-        page_content = {
-            'page_number': page_idx,
-            'text_blocks': [],
-            'images': [],
-            'page_size': {
+        return PageContent(
+            page_number=page_idx,
+            text_blocks=self._extract_text_with_layout(page),
+            images=self._extract_images_from_page(page, page_idx),
+            page_size={
                 'width': float(page.mediabox.width),
                 'height': float(page.mediabox.height)
             }
-        }
-        
-        # Extract text with positioning information
-        text_blocks = self._extract_text_with_layout(page)
-        page_content['text_blocks'] = text_blocks
-        self.conversion_stats['text_blocks_extracted'] += len(text_blocks)
-        
-        # Extract images
-        images = self._extract_images_from_page(page, page_idx)
-        page_content['images'] = images
-        self.conversion_stats['images_extracted'] += len(images)
-        
-        return page_content
+        )
     
-    def _extract_text_with_layout(self, page) -> List[Dict]:
+    def _extract_text_with_layout(self, page: PDFPage) -> list[TextBlock]:
         """Extract text with layout information using PyMuPDF with proper spacing"""
-        text_blocks = []
+        text_blocks: list[TextBlock] = []
         
         try:
-            # Use PyMuPDF blocks method for better text spacing
             blocks = page.get_text("blocks")
-            page_text_parts = []
+            page_text_parts: list[TextBlock] = []
             
             for block in blocks:
                 if len(block) >= 5 and block[4].strip():  # Text block
@@ -99,7 +199,7 @@ class ModernPDF2DOCXConverter:
             
             # Combine text parts with proper spacing
             if page_text_parts:
-                combined_text = ' '.join([part['text'] for part in page_text_parts])
+                combined_text = ' '.join(part['text'] for part in page_text_parts)
                 
                 text_blocks.append({
                     'text': combined_text.strip(),
@@ -130,9 +230,9 @@ class ModernPDF2DOCXConverter:
         
         return text_blocks
     
-    def _extract_images_from_page(self, page, page_idx: int) -> List[Dict]:
+    def _extract_images_from_page(self, page: PDFPage, page_idx: int) -> list[ImageData]:
         """Extract images from a PDF page using PyMuPDF"""
-        images = []
+        images: list[ImageData] = []
         
         try:
             image_list = page.get_images()
@@ -152,14 +252,14 @@ class ModernPDF2DOCXConverter:
                     
                     # Try to get image dimensions
                     try:
-                        pil_image = Image.open(BytesIO(image_data))
-                        width, height = pil_image.size
-                        format_type = pil_image.format
+                        with Image.open(BytesIO(image_data)) as pil_image:
+                            width, height = pil_image.size
+                            format_type = pil_image.format
                     except Exception:
                         width, height = 100, 100  # Default size
                         format_type = image_ext.upper()
                     
-                    image_info = {
+                    images.append({
                         'name': image_name,
                         'data': image_data,
                         'width': width,
@@ -167,9 +267,7 @@ class ModernPDF2DOCXConverter:
                         'format': format_type,
                         'page_number': page_idx,
                         'index': img_idx
-                    }
-                    
-                    images.append(image_info)
+                    })
                     
                 except Exception as e:
                     logger.warning(f"Failed to extract image {img_idx} from page {page_idx}: {e}")
@@ -179,13 +277,39 @@ class ModernPDF2DOCXConverter:
         
         return images
     
-    def create_docx_document(self, extracted_content: Dict, template_path: str = None) -> Document:
+    def create_docx_document(
+        self, 
+        extracted_content: ExtractedContent, 
+        template_path: Optional[str] = None
+    ) -> Document:
         """Create a DOCX document from extracted PDF content"""
-        if template_path:
-            self.load_template(template_path)
-        return self.creator.create_from_pdf_data(extracted_content)
+        
+        # Load template or create new document
+        if template_path and self.load_template(template_path):
+            # Create new document based on template
+            self.docx_document = Document(template_path)
+            # Clear existing content but keep styles and formatting
+            for paragraph in self.docx_document.paragraphs[:]:
+                p = paragraph._element
+                p.getparent().remove(p)
+        else:
+            # Create new document
+            self.docx_document = Document()
+        
+        # Apply template formatting if available
+        self._apply_template_formatting(extracted_content)
+        
+        # Process each page
+        for page_content in extracted_content['pages']:
+            self._process_page_content(page_content)
+            
+            # Add page break between pages (except for the last page)
+            if page_content != extracted_content['pages'][-1]:
+                self.docx_document.add_page_break()
+        
+        return self.docx_document
     
-    def _apply_template_formatting(self, extracted_content: Dict) -> None:
+    def _apply_template_formatting(self, extracted_content: ExtractedContent) -> None:
         """Apply template formatting to the document"""
         if not self.template_document:
             # Set default formatting for new documents
@@ -215,123 +339,120 @@ class ModernPDF2DOCXConverter:
             logger.warning(f"Failed to apply template formatting: {e}")
             self._set_default_formatting(extracted_content)
     
-    def _set_default_formatting(self, extracted_content: Dict) -> None:
+    def _set_default_formatting(self, extracted_content: ExtractedContent) -> None:
         """Set default formatting based on PDF page size"""
         try:
+            if not self.docx_document or not extracted_content['pages']:
+                return
+                
             section = self.docx_document.sections[0]
             
             # Get PDF page dimensions (use first page)
-            if extracted_content['pages']:
-                pdf_width = extracted_content['pages'][0]['page_size']['width']
-                pdf_height = extracted_content['pages'][0]['page_size']['height']
-                
-                # Convert PDF points to inches (72 points = 1 inch)
-                page_width_inches = pdf_width / 72
-                page_height_inches = pdf_height / 72
-                
-                # Set page size
-                section.page_width = Inches(page_width_inches)
-                section.page_height = Inches(page_height_inches)
-                
-                # Determine orientation
-                if pdf_width > pdf_height:
-                    section.orientation = WD_ORIENT.LANDSCAPE
-                else:
-                    section.orientation = WD_ORIENT.PORTRAIT
-                
-                # Set reasonable margins (1 inch default)
-                section.left_margin = Inches(1)
-                section.right_margin = Inches(1)
-                section.top_margin = Inches(1)
-                section.bottom_margin = Inches(1)
-                
-                logger.info(f"Set page size: {page_width_inches:.1f}\" x {page_height_inches:.1f}\"")
+            page_size = extracted_content['pages'][0]['page_size']
+            pdf_width = page_size['width']
+            pdf_height = page_size['height']
+            
+            # Convert PDF points to inches (72 points = 1 inch)
+            page_width_inches = pdf_width / 72
+            page_height_inches = pdf_height / 72
+            
+            # Set page size
+            section.page_width = Inches(page_width_inches)
+            section.page_height = Inches(page_height_inches)
+            
+            # Determine orientation
+            section.orientation = (
+                WD_ORIENT.LANDSCAPE if pdf_width > pdf_height 
+                else WD_ORIENT.PORTRAIT
+            )
+            
+            # Set reasonable margins (1 inch default)
+            section.left_margin = Inches(1)
+            section.right_margin = Inches(1)
+            section.top_margin = Inches(1)
+            section.bottom_margin = Inches(1)
+            
+            logger.info(f"Set page size: {page_width_inches:.1f}\" x {page_height_inches:.1f}\"")
             
         except Exception as e:
             logger.warning(f"Failed to set default formatting: {e}")
     
-    def _process_page_content(self, page_content: Dict) -> None:
+    def _process_page_content(self, page_content: PageContent) -> None:
         """Process content from a single PDF page"""
-        
-        # Group text blocks into paragraphs based on position
-        paragraphs = self._group_text_into_paragraphs(page_content['text_blocks'])
+        # Group text blocks into paragraphs
+        paragraphs = self._group_text_into_paragraphs(page_content.text_blocks)
         
         # Add text paragraphs to document
         for paragraph_data in paragraphs:
             self._add_paragraph_to_document(paragraph_data)
         
         # Add images to document
-        for image_data in page_content['images']:
+        for image_data in page_content.images:
             self._add_image_to_document(image_data)
     
-    def _group_text_into_paragraphs(self, text_blocks: List[Dict]) -> List[Dict]:
+    def _group_text_into_paragraphs(self, text_blocks: list[TextBlock]) -> list[ParagraphData]:
         """Group text blocks into logical paragraphs"""
         if not text_blocks:
             return []
         
-        paragraphs = []
-        current_paragraph = {
-            'text_parts': [],
-            'y_position': None,
-            'font_info': {}
-        }
+        paragraphs: list[ParagraphData] = []
+        current_paragraph = ParagraphData(text_parts=[])
         
         # Group text blocks by approximate Y position
         y_threshold = 5  # Points threshold for same line
         
         for block in text_blocks:
-            if current_paragraph['y_position'] is None:
+            if current_paragraph.y_position is None:
                 # First block
-                current_paragraph['y_position'] = block['y']
-                current_paragraph['text_parts'].append(block)
-            elif abs(block['y'] - current_paragraph['y_position']) <= y_threshold:
+                current_paragraph.y_position = block['y']
+                current_paragraph.text_parts.append(block)
+            elif abs(block['y'] - current_paragraph.y_position) <= y_threshold:
                 # Same line
-                current_paragraph['text_parts'].append(block)
+                current_paragraph.text_parts.append(block)
             else:
                 # New line/paragraph
-                if current_paragraph['text_parts']:
+                if current_paragraph.text_parts:
                     paragraphs.append(current_paragraph)
                 
-                current_paragraph = {
-                    'text_parts': [block],
-                    'y_position': block['y'],
-                    'font_info': {}
-                }
+                current_paragraph = ParagraphData(
+                    text_parts=[block],
+                    y_position=block['y']
+                )
         
         # Add the last paragraph
-        if current_paragraph['text_parts']:
+        if current_paragraph.text_parts:
             paragraphs.append(current_paragraph)
         
         return paragraphs
     
-    def _add_paragraph_to_document(self, paragraph_data: Dict) -> None:
+    def _add_paragraph_to_document(self, paragraph_data: ParagraphData) -> None:
         """Add a paragraph to the DOCX document with proper formatting"""
-        
         # Combine text parts with proper spacing
-        combined_text = self._combine_text_with_spacing(paragraph_data['text_parts'])
+        combined_text = self._combine_text_with_spacing(paragraph_data.text_parts)
         
         if not combined_text.strip():
             return
         
+        if not self.docx_document:
+            return
+            
         # Create paragraph
         paragraph = self.docx_document.add_paragraph()
         
         # Add text runs with formatting
-        for text_part in paragraph_data['text_parts']:
+        for text_part in paragraph_data.text_parts:
             run = paragraph.add_run(text_part['text'])
-            
-            # Apply font formatting
-            self._apply_font_formatting(run, text_part)
+            self._apply_font_formatting(run, text_part)  # Apply font formatting
         
         # Apply paragraph formatting
         self._apply_paragraph_formatting(paragraph, paragraph_data)
     
-    def _combine_text_with_spacing(self, text_parts: List[Dict]) -> str:
+    def _combine_text_with_spacing(self, text_parts: list[TextBlock]) -> str:
         """Combine text parts with proper spacing"""
         if not text_parts:
             return ""
         
-        combined_parts = []
+        combined_parts: list[str] = []
         
         for i, part in enumerate(text_parts):
             text = part['text']
@@ -354,9 +475,7 @@ class ModernPDF2DOCXConverter:
         combined_text = ''.join(combined_parts)
         
         # Apply additional spacing fixes
-        combined_text = self._fix_text_spacing(combined_text)
-        
-        return combined_text
+        return self._fix_text_spacing(combined_text)
     
     def _fix_text_spacing(self, text: str) -> str:
         """Fix common text spacing issues"""
@@ -383,7 +502,7 @@ class ModernPDF2DOCXConverter:
         
         return text
     
-    def _apply_font_formatting(self, run, text_part: Dict) -> None:
+    def _apply_font_formatting(self, run: Any, text_part: TextBlock) -> None:
         """Apply font formatting to a text run"""
         try:
             font = run.font
@@ -394,7 +513,7 @@ class ModernPDF2DOCXConverter:
             # Check if we have a custom font mapping
             custom_font = self._get_custom_font(font_name)
             if custom_font:
-                font.name = custom_font['name']
+                font.name = custom_font.name
             else:
                 # Clean and set font name
                 clean_font_name = self._clean_font_name(font_name)
@@ -407,10 +526,10 @@ class ModernPDF2DOCXConverter:
         except Exception as e:
             logger.warning(f"Failed to apply font formatting: {e}")
     
-    def _get_custom_font(self, font_name: str) -> Optional[Dict]:
+    def _get_custom_font(self, font_name: str) -> Optional[FontInfo]:
         """Get custom font mapping if available"""
         for custom_font in self.custom_fonts:
-            if font_name.lower() in custom_font['name'].lower():
+            if font_name.lower() in custom_font.name.lower():
                 return custom_font
         return None
     
@@ -438,7 +557,7 @@ class ModernPDF2DOCXConverter:
         
         return font_name if font_name else 'Calibri'
     
-    def _apply_paragraph_formatting(self, paragraph, paragraph_data: Dict) -> None:
+    def _apply_paragraph_formatting(self, paragraph: Any, paragraph_data: ParagraphData) -> None:
         """Apply paragraph-level formatting"""
         try:
             paragraph_format = paragraph.paragraph_format
@@ -453,9 +572,12 @@ class ModernPDF2DOCXConverter:
         except Exception as e:
             logger.warning(f"Failed to apply paragraph formatting: {e}")
     
-    def _add_image_to_document(self, image_data: Dict) -> None:
+    def _add_image_to_document(self, image_data: ImageData) -> None:
         """Add an image to the DOCX document"""
         try:
+            if not self.docx_document:
+                return
+                
             # Create image from data
             image_stream = BytesIO(image_data['data'])
             
@@ -497,19 +619,44 @@ class ModernPDF2DOCXConverter:
         except Exception as e:
             logger.warning(f"Failed to add image {image_data['name']}: {e}")
     
-    def convert_pdf_to_docx(self, pdf_path: str, output_path: str, 
-                          template_path: str = None, font_paths: List[str] = None,
-                          password: str = None, start_page: int = 0, 
-                          end_page: int = None, pages: List[int] = None) -> Dict:
+    def convert_pdf_to_docx(
+        self, 
+        pdf_path: str, 
+        output_path: str, 
+        template_path: Optional[str] = None, 
+        font_paths: Optional[list[str]] = None,
+        password: Optional[str] = None, 
+        start_page: int = 0, 
+        end_page: Optional[int] = None, 
+        pages: Optional[list[int]] = None
+    ) -> ConversionResult:
         """
-        Convert PDF to DOCX using modular extraction and creation
+        Convert PDF to DOCX with proper text extraction and template formatting
         
-        Args: [same as before]
-        Returns: [same as before]
+        Args:
+            pdf_path: Path to input PDF file
+            output_path: Path for output DOCX file
+            template_path: Optional path to DOCX template
+            font_paths: Optional list of custom font files
+            password: Optional PDF password
+            start_page: Starting page (0-indexed)
+            end_page: Ending page (exclusive)
+            pages: Specific pages to convert
+            
+        Returns:
+            Dict with conversion results
         """
         
         try:
             logger.info(f"Starting conversion: {pdf_path} -> {output_path}")
+            
+            # Reset stats
+            self.conversion_stats = {
+                'pages_processed': 0,
+                'text_blocks_extracted': 0,
+                'images_extracted': 0,
+                'spacing_fixes_applied': 0
+            }
             
             # Register custom fonts
             if font_paths:
@@ -530,14 +677,16 @@ class ModernPDF2DOCXConverter:
             document.save(output_path)
             
             # Prepare result
-            result = {
+            result: ConversionResult = {
                 'status': 'success',
                 'output_path': output_path,
-                'stats': self.extractor.conversion_stats,  # Use extractor's stats
+                'stats': self.conversion_stats,
                 'pages_converted': extracted_content['total_pages']
             }
             
             logger.info(f"Conversion completed successfully!")
+            logger.info(f"Stats: {self.conversion_stats}")
+            
             return result
             
         except Exception as e:
@@ -545,7 +694,7 @@ class ModernPDF2DOCXConverter:
             logger.error(error_msg)
             return {'status': 'error', 'error': error_msg}
 
-def main():
+def main() -> None:
     """Command line interface"""
     import argparse
     

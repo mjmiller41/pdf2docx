@@ -1,0 +1,936 @@
+TITLE: Setting up Typing Module for Tests - Python
+DESCRIPTION: This snippet imports the `typing` module and related components, including `dataclass` and all symbols from `typing`, typically used for test setup or initial module configuration to make type hints available.
+SOURCE: https://github.com/python/cpython/blob/main/Doc/library/typing.rst#_snippet_0
+
+LANGUAGE: Python
+CODE:
+```
+import typing
+from dataclasses import dataclass
+from typing import *
+```
+
+----------------------------------------
+
+TITLE: Typing Module Enhancements
+DESCRIPTION: Minor fixes have been applied to the `typing` module. This includes adding type annotations to `NamedTuple.__new__` and ensuring `*args` and `**kwds` are correctly passed in `Generic.__new__`.
+SOURCE: https://github.com/python/cpython/blob/main/Misc/NEWS.d/3.8.0a1.rst#_snippet_115
+
+LANGUAGE: APIDOC
+CODE:
+```
+typing.NamedTuple:
+  - __new__: Added type annotations
+typing.Generic:
+  - __new__: Now passes *args and **kwds
+```
+
+----------------------------------------
+
+TITLE: Typing Module Updates: AsyncContextManager and ContextManager
+DESCRIPTION: Updates the `typing` module to include `Generic AsyncContextManager` and add support for `ContextManager` on all Python versions. These additions enhance type hinting capabilities for asynchronous and synchronous context management.
+SOURCE: https://github.com/python/cpython/blob/main/Misc/NEWS.d/3.5.4rc1.rst#_snippet_15
+
+LANGUAGE: APIDOC
+CODE:
+```
+Module: typing
+Updates: Add generic AsyncContextManager; add support for ContextManager on all versions.
+Contributors: Jelle Zijlstra, Ivan Levkivskyi.
+```
+
+----------------------------------------
+
+TITLE: Conditional Import for Static Type Checking in Python
+DESCRIPTION: This snippet illustrates using `typing.TYPE_CHECKING` to import modules conditionally. This pattern allows expensive modules, used only for type annotations, to be imported by static type checkers without incurring runtime overhead.
+SOURCE: https://github.com/python/cpython/blob/main/Doc/library/typing.rst#_snippet_173
+
+LANGUAGE: Python
+CODE:
+```
+if TYPE_CHECKING:
+    import expensive_mod
+
+def fun(arg: expensive_mod.SomeType) -> None:
+    local_var: expensive_mod.AnotherType = other_fun()
+```
+
+----------------------------------------
+
+TITLE: Add generic collections.OrderedDict to typing module
+DESCRIPTION: Add generic version of ``collections.OrderedDict`` to the ``typing`` module. Patch by Ismo Toijala.
+SOURCE: https://github.com/python/cpython/blob/main/Misc/NEWS.d/3.8.0a1.rst#_snippet_46
+
+LANGUAGE: APIDOC
+CODE:
+```
+typing: Generic version of collections.OrderedDict added.
+```
+
+----------------------------------------
+
+TITLE: Add typing.assert_type Function to Python
+DESCRIPTION: A new function, `typing.assert_type`, has been added to the `typing` module. This function is useful for asserting the type of an expression at runtime for debugging or validation purposes.
+SOURCE: https://github.com/python/cpython/blob/main/Misc/NEWS.d/3.11.0a7.rst#_snippet_78
+
+LANGUAGE: APIDOC
+CODE:
+```
+Function: typing.assert_type
+Purpose: Assert the type of an expression at runtime.
+```
+
+----------------------------------------
+
+TITLE: Typing Module Fixes: Shallow Copying and __init_subclass__
+DESCRIPTION: Introduces two minor fixes for the `typing` module: enabling shallow copying of generic class instances and improving the interaction between `__init_subclass__` and generics. These enhancements improve the flexibility and correctness of type-hinted code.
+SOURCE: https://github.com/python/cpython/blob/main/Misc/NEWS.d/3.7.0a3.rst#_snippet_20
+
+LANGUAGE: Python
+CODE:
+```
+typing module: Allows shallow copying of generic class instances; improves __init_subclass__ interaction with generics.
+```
+
+----------------------------------------
+
+TITLE: Typing Module New Functions and Deprecations
+DESCRIPTION: Documentation for new introspection functions like is_typeddict and changes to Protocol behavior. Also notes the deprecation of typing.io and typing.re submodules, advising direct import from typing.
+SOURCE: https://github.com/python/cpython/blob/main/Doc/whatsnew/3.10.rst#_snippet_124
+
+LANGUAGE: APIDOC
+CODE:
+```
+typing:
+  - is_typeddict(annotation): Function to introspect if an annotation is a typing.TypedDict.
+  - Protocol: Subclasses with only data variables now raise TypeError with isinstance unless decorated with @runtime_checkable.
+  - typing.io: Deprecated submodule. Import directly from typing.
+  - typing.re: Deprecated submodule. Import directly from typing.
+```
+
+----------------------------------------
+
+TITLE: Types Module Reintroduces Specific Type Classes
+DESCRIPTION: Reintroduction of EllipsisType, NoneType, and NotImplementedType classes in the types module, providing distinct types for better type checker interpretation.
+SOURCE: https://github.com/python/cpython/blob/main/Doc/whatsnew/3.10.rst#_snippet_123
+
+LANGUAGE: APIDOC
+CODE:
+```
+types:
+  - EllipsisType: Class representing the type of Ellipsis.
+  - NoneType: Class representing the type of None.
+  - NotImplementedType: Class representing the type of NotImplemented.
+```
+
+----------------------------------------
+
+TITLE: Add `IO`, `BinaryIO`, `TextIO`, `Match`, `Pattern` to `typing.__all__`
+DESCRIPTION: The `typing` module's `__all__` attribute now includes `IO`, `BinaryIO`, `TextIO`, `Match`, and `Pattern`. This makes these commonly used type aliases directly importable via `from typing import *`.
+SOURCE: https://github.com/python/cpython/blob/main/Misc/NEWS.d/3.11.0a1.rst#_snippet_127
+
+LANGUAGE: APIDOC
+CODE:
+```
+Add ``IO``, ``BinaryIO``, ``TextIO``, ``Match``, and ``Pattern`` to
+``typing.__all__``. Patch by Jelle Zijlstra.
+```
+
+----------------------------------------
+
+TITLE: Minor Fixes in typing Module Annotations
+DESCRIPTION: Applies minor fixes to the typing module, including adding annotations to NamedTuple.__new__ and passing *args, **kwds in Generic.__new__.
+SOURCE: https://github.com/python/cpython/blob/main/Misc/NEWS.d/3.7.0b5.rst#_snippet_13
+
+LANGUAGE: APIDOC
+CODE:
+```
+typing module: Added annotations to NamedTuple.__new__; passed *args, **kwds in Generic.__new__.
+```
+
+----------------------------------------
+
+TITLE: Add support for generic typing.NamedTuple
+DESCRIPTION: Introduces support for generic NamedTuple types within the typing module.
+SOURCE: https://github.com/python/cpython/blob/main/Misc/NEWS.d/3.11.0b1.rst#_snippet_8
+
+LANGUAGE: APIDOC
+CODE:
+```
+Add support for generic :class:`typing.NamedTuple`.
+```
+
+----------------------------------------
+
+TITLE: Implement PEP 646 Support in Python Typing
+DESCRIPTION: Adds support for PEP 646 (Variadic Generics) within the `typing.py` module, enhancing Python's type hinting capabilities.
+SOURCE: https://github.com/python/cpython/blob/main/Misc/NEWS.d/3.11.0a7.rst#_snippet_72
+
+LANGUAGE: APIDOC
+CODE:
+```
+Module: typing
+Feature: PEP 646 (Variadic Generics) support
+```
+
+----------------------------------------
+
+TITLE: Add typing.Never Type and typing.assert_never Function
+DESCRIPTION: The `typing` module now includes `typing.Never` (a type indicating unreachable code) and `typing.assert_never` (a function to assert that a code path is unreachable), enhancing type checking capabilities.
+SOURCE: https://github.com/python/cpython/blob/main/Misc/NEWS.d/3.11.0a6.rst#_snippet_12
+
+LANGUAGE: APIDOC
+CODE:
+```
+typing:
+  - `typing.Never`: New type added.
+  - `typing.assert_never`: New function added.
+```
+
+----------------------------------------
+
+TITLE: Deprecated: typing.io and typing.re Submodules
+DESCRIPTION: Importing from `typing.io` and `typing.re` submodules will now emit `DeprecationWarning`. These submodules will be removed, and their contents should be imported directly from the `typing` module.
+SOURCE: https://github.com/python/cpython/blob/main/Doc/whatsnew/3.10.rst#_snippet_161
+
+LANGUAGE: APIDOC
+CODE:
+```
+typing.io, typing.re (submodules, deprecated)
+```
+
+----------------------------------------
+
+TITLE: Registering Subclassed Type in Module Execution in C
+DESCRIPTION: This C function, `sublist_module_exec`, illustrates the process of preparing and adding a subclassed Python type to a module. It sets the `tp_base` field of `SubListType` to `PyList_Type` and then calls `PyType_Ready` to finalize the type before adding it to the module using `PyModule_AddObjectRef`.
+SOURCE: https://github.com/python/cpython/blob/main/Doc/extending/newtypes_tutorial.rst#_snippet_50
+
+LANGUAGE: C
+CODE:
+```
+static int
+sublist_module_exec(PyObject *m)
+{
+    SubListType.tp_base = &PyList_Type;
+    if (PyType_Ready(&SubListType) < 0) {
+        return -1;
+    }
+
+    if (PyModule_AddObjectRef(m, "SubList", (PyObject *) &SubListType) < 0) {
+        return -1;
+    }
+
+    return 0;
+}
+```
+
+----------------------------------------
+
+TITLE: C API: Get Module State of Python Type's Associated Module
+DESCRIPTION: Returns the state of the module object associated with the given type. This is a shortcut for calling `PyModule_GetState()` on the result of `PyType_GetModule`.
+SOURCE: https://github.com/python/cpython/blob/main/Doc/c-api/type.rst#_snippet_24
+
+LANGUAGE: APIDOC
+CODE:
+```
+PyType_GetModuleState(PyTypeObject *type)
+  Returns: void*
+  Parameters:
+    type: PyTypeObject* - The type object.
+```
+
+----------------------------------------
+
+TITLE: C API: Get Module Object Associated with Python Type
+DESCRIPTION: Returns the module object associated with the given type when the type was created using `PyType_FromModuleAndSpec`. If no module is associated, it sets `TypeError` and returns `NULL`. This function is usually used to get the module where a method is defined. Note that `Py_TYPE(self)` may be a subclass, and subclasses are not necessarily defined in the same module as their superclass. See `PyCMethod` to get the class that defines the method, and `PyType_GetModuleByDef` for cases where `PyCMethod` cannot be used. Added in version 3.9.
+SOURCE: https://github.com/python/cpython/blob/main/Doc/c-api/type.rst#_snippet_23
+
+LANGUAGE: APIDOC
+CODE:
+```
+PyType_GetModule(PyTypeObject *type)
+  Returns: PyObject*
+  Parameters:
+    type: PyTypeObject* - The type object.
+```
+
+----------------------------------------
+
+TITLE: Defining Generic Functions with TypeVar Factory in Python
+DESCRIPTION: This snippet shows an alternative way to define generic functions using the `TypeVar` factory from the `typing` module. It declares a type variable `U` and then uses it to parameterize the `second` function, enabling it to work with sequences of any type `U`.
+SOURCE: https://github.com/python/cpython/blob/main/Doc/library/typing.rst#_snippet_14
+
+LANGUAGE: Python
+CODE:
+```
+from collections.abc import Sequence
+from typing import TypeVar
+
+U = TypeVar('U')                  # Declare type variable "U"
+
+def second(l: Sequence[U]) -> U:  # Function is generic over the TypeVar "U"
+    return l[1]
+```
+
+----------------------------------------
+
+TITLE: Python User-Defined Type Guards (TypeGuard) (PEP 647)
+DESCRIPTION: Documents the addition of `typing.TypeGuard` to the `typing` module, allowing annotation of type guard functions to improve information provided to static type checkers during type narrowing.
+SOURCE: https://github.com/python/cpython/blob/main/Doc/whatsnew/3.10.rst#_snippet_42
+
+LANGUAGE: APIDOC
+CODE:
+```
+typing.TypeGuard:
+  Annotates type guard functions.
+  Improves information provided to static type checkers during type narrowing.
+  See PEP 647 for more details.
+```
+
+----------------------------------------
+
+TITLE: Creating and Inspecting Type Aliases with TypeAliasType in Python
+DESCRIPTION: This example illustrates the creation of a type alias using the new `type` statement syntax introduced in Python 3.12. It then demonstrates that the type of such an alias (`Alias`) is `typing.TypeAliasType`, confirming its specific classification within the `typing` module.
+SOURCE: https://github.com/python/cpython/blob/main/Doc/library/typing.rst#_snippet_116
+
+LANGUAGE: Python
+CODE:
+```
+type Alias = int
+type(Alias)
+<class 'typing.TypeAliasType'>
+```
+
+----------------------------------------
+
+TITLE: C API: Get Python Type Module Name
+DESCRIPTION: Returns the type's module name. This is equivalent to getting the `type.__module__` attribute. Added in version 3.13.
+SOURCE: https://github.com/python/cpython/blob/main/Doc/c-api/type.rst#_snippet_21
+
+LANGUAGE: APIDOC
+CODE:
+```
+PyType_GetModuleName(PyTypeObject *type)
+  Returns: PyObject*
+  Parameters:
+    type: PyTypeObject* - The type object.
+```
+
+----------------------------------------
+
+TITLE: Retrieving Type Module Name in C
+DESCRIPTION: Adds `PyType_GetModuleName` to get a type's module name. This function is equivalent to accessing the `type.__module__` attribute, offering a C API method to retrieve the module associated with a given type.
+SOURCE: https://github.com/python/cpython/blob/main/Doc/whatsnew/3.13.rst#_snippet_32
+
+LANGUAGE: C
+CODE:
+```
+PyType_GetModuleName
+```
+
+----------------------------------------
+
+TITLE: Set __main__ as Default Module Name for typing.TypeVar
+DESCRIPTION: When the `__name__` attribute is missing, `typing.TypeVar` now defaults its module name to `"__main__"`, ensuring consistent behavior for type variables defined in scripts.
+SOURCE: https://github.com/python/cpython/blob/main/Misc/NEWS.d/3.9.0a6.rst#_snippet_6
+
+LANGUAGE: APIDOC
+CODE:
+```
+class typing.TypeVar(name: str, *args: Any, bound: Any = None, covariant: bool = False, contravariant: bool = False, infer_variance: bool = False)
+# When __name__ is missing, the default module name for the TypeVar
+# instance is now "__main__".
+```
+
+----------------------------------------
+
+TITLE: C API: PyType_GetModuleByDef Function
+DESCRIPTION: Finds the first superclass whose module was created from the given PyModuleDef *def* and returns that module. If no module is found, it raises a TypeError and returns NULL. This function is intended for use with PyModule_GetState() to get module state from slot methods. The returned reference is borrowed from *type* and remains valid as long as a reference to *type* is held.
+SOURCE: https://github.com/python/cpython/blob/main/Doc/c-api/type.rst#_snippet_25
+
+LANGUAGE: APIDOC
+CODE:
+```
+PyObject* PyType_GetModuleByDef(PyTypeObject *type, struct PyModuleDef *def)
+  type: PyTypeObject *, The type object to search within.
+  def: struct PyModuleDef *, The module definition to match.
+  Returns: PyObject *, The found module (borrowed reference), or NULL on error.
+  Raises: TypeError if no module is found.
+  Version Added: 3.11
+```
+
+----------------------------------------
+
+TITLE: Adding Type to Module - CPython C API
+DESCRIPTION: This function adds a type object to a Python module, finalizing it internally with PyType_Ready. The type's name is derived from the last component of PyTypeObject.tp_name after a dot. It returns 0 on success and -1 with an exception set on error.
+SOURCE: https://github.com/python/cpython/blob/main/Doc/c-api/module.rst#_snippet_47
+
+LANGUAGE: C
+CODE:
+```
+int PyModule_AddType(PyObject *module, PyTypeObject *type)
+```
+
+----------------------------------------
+
+TITLE: Typing Module Updates: ByteString Removal and TypeAliasType Enhancement
+DESCRIPTION: The `typing.ByteString` alias has been removed, having been deprecated since Python 3.12. Concurrently, `typing.TypeAliasType` now supports star unpacking, enhancing its flexibility.
+SOURCE: https://github.com/python/cpython/blob/main/Doc/whatsnew/3.14.rst#_snippet_175
+
+LANGUAGE: APIDOC
+CODE:
+```
+typing.ByteString: Removed.
+typing.TypeAliasType: Now supports star unpacking.
+```
+
+----------------------------------------
+
+TITLE: Fix `typing.ParamSpec` Substitution in Generic Classes (Python)
+DESCRIPTION: Resolves a bug in the `typing` module where `TypeVar` within a `ParamSpec` substitution in generic custom classes could not be further substituted, ensuring correct type resolution and flexibility.
+SOURCE: https://github.com/python/cpython/blob/main/Misc/NEWS.d/3.12.0a7.rst#_snippet_33
+
+LANGUAGE: APIDOC
+CODE:
+```
+Module: `typing`
+Fix: Corrects `ParamSpec` substitution in custom generic classes when the substituted parameter list contains a `TypeVar`.
+```
+
+----------------------------------------
+
+TITLE: pathlib.types Module Overview
+DESCRIPTION: The `pathlib.types` module provides types specifically designed for static type checking within the `pathlib` ecosystem. It was added in Python 3.14.
+SOURCE: https://github.com/python/cpython/blob/main/Doc/library/pathlib.rst#_snippet_110
+
+LANGUAGE: APIDOC
+CODE:
+```
+Module: pathlib.types
+Synopsis: pathlib types for static type checking
+Version Added: 3.14
+```
+
+----------------------------------------
+
+TITLE: Python types Module API Updates
+DESCRIPTION: This section introduces new classes and functions in the `types` module. It includes `types.MappingProxyType` for read-only mapping proxies, and `types.new_class` and `types.prepare_class` which support PEP 3115 compliant dynamic type creation.
+SOURCE: https://github.com/python/cpython/blob/main/Doc/whatsnew/3.3.rst#_snippet_106
+
+LANGUAGE: APIDOC
+CODE:
+```
+types module:
+  - MappingProxyType: Read-only proxy of a mapping.
+  - new_class: Provides support for PEP 3115 compliant dynamic type creation.
+  - prepare_class: Provides support for PEP 3115 compliant dynamic type creation.
+```
+
+----------------------------------------
+
+TITLE: Adding Custom Type to Python Module (C)
+DESCRIPTION: This C snippet uses PyModule_AddObjectRef to add the CustomType object to the module dictionary m under the name 'Custom'. This makes the custom type accessible from Python code as module.Custom, allowing users to create instances of it.
+SOURCE: https://github.com/python/cpython/blob/main/Doc/extending/newtypes_tutorial.rst#_snippet_9
+
+LANGUAGE: C
+CODE:
+```
+if (PyModule_AddObjectRef(m, "Custom", (PyObject *) &CustomType) < 0) {
+    return -1;
+}
+```
+
+----------------------------------------
+
+TITLE: Python Module Writable Attributes: __doc__, __annotations__, __annotate__
+DESCRIPTION: Describes writable attributes on Python module objects: __doc__ for documentation, __annotations__ for variable type hints, and __annotate__ for the module's annotation function. Includes version changes and best practices.
+SOURCE: https://github.com/python/cpython/blob/main/Doc/reference/datamodel.rst#_snippet_28
+
+LANGUAGE: APIDOC
+CODE:
+```
+module.__doc__:
+  Description: The module's documentation string.
+  Type: str or None
+  Notes: None if unavailable.
+
+module.__annotations__:
+  Description: A dictionary containing variable annotations collected during module body execution.
+  Type: dict
+  Notes:
+    - For best practices, see annotationlib.
+    - Version changed (3.14): Annotations are now lazily evaluated (PEP 649).
+
+module.__annotate__:
+  Description: The annotate function for this module.
+  Type: callable or None
+  Notes: None if the module has no annotations. Added in version 3.14.
+```
+
+----------------------------------------
+
+TITLE: Declaring TypeVarTuple with Constructor
+DESCRIPTION: This example shows an alternative way to declare a `TypeVarTuple` (`Ts`) using its constructor, alongside a regular `TypeVar` (`T`). The `move_first_element_to_last` function then uses these declared type variables to define a variadic generic function, similar to the PEP 695 syntax example.
+SOURCE: https://github.com/python/cpython/blob/main/Doc/library/typing.rst#_snippet_105
+
+LANGUAGE: Python
+CODE:
+```
+T = TypeVar("T")
+Ts = TypeVarTuple("Ts")
+
+def move_first_element_to_last(tup: tuple[T, *Ts]) -> tuple[*Ts, T]:
+    return (*tup[1:], tup[0])
+```
+
+----------------------------------------
+
+TITLE: Accessing Module State from CPython Type Objects
+DESCRIPTION: This C snippet demonstrates how to efficiently retrieve the module-level state directly from a CPython type object using `PyType_GetModuleState`. This function combines the steps of getting the associated module and then its state, simplifying error handling and providing direct access to module-specific data.
+SOURCE: https://github.com/python/cpython/blob/main/Doc/howto/isolating-extensions.rst#_snippet_9
+
+LANGUAGE: C
+CODE:
+```
+my_struct *state = (my_struct*)PyType_GetModuleState(type);
+if (state == NULL) {
+    return NULL;
+}
+```
+
+----------------------------------------
+
+TITLE: Using Generic Type Hints with Built-in Collections in Python
+DESCRIPTION: Illustrates the new capability in Python 3.9 to use built-in collection types like 'list' directly as generic types in type annotations (e.g., 'list[str]'), eliminating the need to import capitalized types from the 'typing' module (e.g., 'List'). This simplifies type hinting for common data structures.
+SOURCE: https://github.com/python/cpython/blob/main/Doc/whatsnew/3.9.rst#_snippet_1
+
+LANGUAGE: python
+CODE:
+```
+def greet_all(names: list[str]) -> None:
+    for name in names:
+        print("Hello", name)
+```
+
+----------------------------------------
+
+TITLE: Defining Generic Class with TypeVar and ParamSpec
+DESCRIPTION: This snippet demonstrates defining a generic class `Z` that accepts both a regular `TypeVar` (`T`) and a `ParamSpec` (`P`). It then shows an example of instantiating `Z`, substituting `T` with `int` and `P` with a list of types `[dict, float]`, illustrating how `ParamSpec` can be used to represent arbitrary callable signatures.
+SOURCE: https://github.com/python/cpython/blob/main/Doc/library/typing.rst#_snippet_40
+
+LANGUAGE: Python
+CODE:
+```
+class Z[T, **P]: ...  # T is a TypeVar; P is a ParamSpec
+Z[int, [dict, float]]
+```
+
+----------------------------------------
+
+TITLE: Inheriting TypedDict (Basic) - Python
+DESCRIPTION: Demonstrates how a TypedDict can inherit from one or more other TypedDict types using the class-based syntax. Point3D inherits 'x' and 'y' from Point2D and adds its own 'z' key.
+SOURCE: https://github.com/python/cpython/blob/main/Doc/library/typing.rst#_snippet_147
+
+LANGUAGE: Python
+CODE:
+```
+class Point3D(Point2D):
+    z: int
+```
+
+----------------------------------------
+
+TITLE: Defining and Using a Python TypedDict
+DESCRIPTION: Demonstrates how to define a `TypedDict` `Point2D` with type-hinted keys. It includes examples of correct and incorrect assignments, highlighting how type checkers enforce the structure, while at runtime, `TypedDict` instances behave like regular dictionaries.
+SOURCE: https://github.com/python/cpython/blob/main/Doc/library/typing.rst#_snippet_137
+
+LANGUAGE: Python
+CODE:
+```
+class Point2D(TypedDict):
+    x: int
+    y: int
+    label: str
+
+a: Point2D = {'x': 1, 'y': 2, 'label': 'good'}  # OK
+b: Point2D = {'z': 3, 'label': 'bad'}           # Fails type check
+
+assert Point2D(x=1, y=2, label='first') == dict(x=1, y=2, label='first')
+```
+
+----------------------------------------
+
+TITLE: Add New typing.override Decorator (PEP 698)
+DESCRIPTION: A new decorator, `typing.override`, has been added to the `typing` module. Refer to PEP 698 for detailed information on its purpose and usage.
+SOURCE: https://github.com/python/cpython/blob/main/Misc/NEWS.d/3.12.0a6.rst#_snippet_6
+
+LANGUAGE: APIDOC
+CODE:
+```
+typing.override:
+  New Feature: Added new decorator.
+  Reference: PEP 698.
+```
+
+----------------------------------------
+
+TITLE: Defining TypedDict with Functional Syntax (Basic) - Python
+DESCRIPTION: Illustrates the basic functional syntax for creating a TypedDict, where the second argument is a literal dictionary mapping string keys to their corresponding types. This method provides an alternative to the class-based syntax.
+SOURCE: https://github.com/python/cpython/blob/main/Doc/library/typing.rst#_snippet_138
+
+LANGUAGE: Python
+CODE:
+```
+Point2D = TypedDict('Point2D', {'x': int, 'y': int, 'label': str})
+```
+
+----------------------------------------
+
+TITLE: multiprocessing.managers DictProxy/ListProxy as Generic Alias Types
+DESCRIPTION: The `DictProxy` and `ListProxy` types within the `multiprocessing.managers` module have been made `Generic Alias Types`. This allows them to be used with `[]` for type hinting in typing contexts, improving type checking capabilities.
+SOURCE: https://github.com/python/cpython/blob/main/Misc/NEWS.d/3.13.0a2.rst#_snippet_45
+
+LANGUAGE: APIDOC
+CODE:
+```
+Module: multiprocessing.managers
+Types: DictProxy, ListProxy
+Change: Made `DictProxy` and `ListProxy` Generic Alias Types for `[]` use in typing contexts.
+```
+
+----------------------------------------
+
+TITLE: Declaring ParamSpec in Type Parameter Lists (PEP 695)
+DESCRIPTION: Demonstrates the modern way to declare a ParamSpec using the **P syntax within a type parameter list, as introduced by PEP 695. This creates a type alias IntFunc that represents a callable taking parameters defined by P and returning an integer.
+SOURCE: https://github.com/python/cpython/blob/main/Doc/library/typing.rst#_snippet_112
+
+LANGUAGE: python
+CODE:
+```
+type IntFunc[**P] = Callable[P, int]
+```
+
+----------------------------------------
+
+TITLE: Alias types.UnionType to typing.Union
+DESCRIPTION: The `types.UnionType` is now an alias for `typing.Union`. This change unifies the representation of union types across the `types` and `typing` modules, promoting consistency and simplifying type hint usage.
+SOURCE: https://github.com/python/cpython/blob/main/Doc/whatsnew/3.14.rst#_snippet_122
+
+LANGUAGE: APIDOC
+CODE:
+```
+Module: types
+Alias: types.UnionType is now an alias for typing.Union.
+```
+
+----------------------------------------
+
+TITLE: C API: PyModule_Type - Python Module Type Object
+DESCRIPTION: This variable represents the Python module type object in the C API. It is exposed to Python programs as types.ModuleType and is an instance of PyTypeObject.
+SOURCE: https://github.com/python/cpython/blob/main/Doc/c-api/module.rst#_snippet_0
+
+LANGUAGE: APIDOC
+CODE:
+```
+PyTypeObject PyModule_Type
+  Description: This instance of PyTypeObject represents the Python module type. This is exposed to Python programs as types.ModuleType.
+```
+
+----------------------------------------
+
+TITLE: C API: PyModule_CheckExact - Check if Object is Exactly Module Type
+DESCRIPTION: Checks if the given PyObject* p is exactly a module object, not a subtype of PyModule_Type. This function always succeeds and returns true if it's an exact module type, false otherwise.
+SOURCE: https://github.com/python/cpython/blob/main/Doc/c-api/module.rst#_snippet_2
+
+LANGUAGE: APIDOC
+CODE:
+```
+int PyModule_CheckExact(PyObject *p)
+  Parameters:
+    p: PyObject* - The object to check.
+  Returns: int - True if p is exactly a module object (not a subtype), false otherwise.
+  Description: Return true if p is a module object, but not a subtype of PyModule_Type. This function always succeeds.
+```
+
+----------------------------------------
+
+TITLE: Declaring TypeVarTuple in Type Parameter Lists
+DESCRIPTION: This Python function demonstrates how to declare and use a `TypeVarTuple` (`*Ts`) directly within a type parameter list (PEP 695 syntax) to create a variadic generic function. It takes a tuple with a single element `T` and an arbitrary number of elements `*Ts`, then returns a new tuple with `T` moved to the end.
+SOURCE: https://github.com/python/cpython/blob/main/Doc/library/typing.rst#_snippet_104
+
+LANGUAGE: Python
+CODE:
+```
+def move_first_element_to_last[T, *Ts](tup: tuple[T, *Ts]) -> tuple[*Ts, T]:
+    return (*tup[1:], tup[0])
+```
+
+----------------------------------------
+
+TITLE: Defining Generic TypedDict (Python 3.12+) - Python
+DESCRIPTION: Shows the modern syntax for defining a generic TypedDict using type parameters directly in the class definition, available from Python 3.12 onwards. This allows for flexible type definitions.
+SOURCE: https://github.com/python/cpython/blob/main/Doc/library/typing.rst#_snippet_150
+
+LANGUAGE: Python
+CODE:
+```
+class Group[T](TypedDict):
+    key: T
+    group: list[T]
+```
+
+----------------------------------------
+
+TITLE: Defining Generic TypedDict (Python 3.11 or Lower) - Python
+DESCRIPTION: Demonstrates how to define a generic TypedDict for compatibility with Python versions 3.11 or lower, requiring explicit inheritance from typing.Generic and the use of TypeVar. This ensures backward compatibility for generic TypedDicts.
+SOURCE: https://github.com/python/cpython/blob/main/Doc/library/typing.rst#_snippet_151
+
+LANGUAGE: Python
+CODE:
+```
+T = TypeVar("T")
+
+class Group(TypedDict, Generic[T]):
+    key: T
+    group: list[T]
+```
+
+----------------------------------------
+
+TITLE: CPython Intrinsic Type: INTRINSIC_TYPEALIAS
+DESCRIPTION: Describes the INTRINSIC_TYPEALIAS intrinsic type, which creates a typing.TypeAliasType. It is used within the type statement and takes a tuple argument containing the type alias's name, type parameters, and value.
+SOURCE: https://github.com/python/cpython/blob/main/Doc/library/dis.rst#_snippet_133
+
+LANGUAGE: APIDOC
+CODE:
+```
+INTRINSIC_TYPEALIAS
+  Creates a typing.TypeAliasType; used in the :keyword:`type` statement.
+  The argument is a tuple of the type alias's name, type parameters, and value.
+```
+
+----------------------------------------
+
+TITLE: C API: PyType_FromMetaclass Function
+DESCRIPTION: Creates and returns a heap type from the provided *spec*, using the *metaclass* to construct the resulting type object. If *metaclass* is NULL, it is derived from *bases*. Metaclasses that override tp_new are not supported unless tp_new is NULL. The *bases* argument can be a single class or a tuple of classes. The *module* argument can associate the module with the new type. This function calls PyType_Ready on the new type but does not fully match the behavior of calling type() or using the class statement (e.g., __new__, __init__, __init_subclass__, __set_name__ are not called).
+SOURCE: https://github.com/python/cpython/blob/main/Doc/c-api/type.rst#_snippet_28
+
+LANGUAGE: APIDOC
+CODE:
+```
+PyObject* PyType_FromMetaclass(PyTypeObject *metaclass, PyObject *module, PyType_Spec *spec, PyObject *bases)
+  metaclass: PyTypeObject *, The metaclass to use for construction (can be NULL).
+  module: PyObject *, The module object to associate with the type (can be NULL).
+  spec: PyType_Spec *, The type specification.
+  bases: PyObject *, Base classes (single class or tuple, can be NULL).
+  Returns: PyObject *, The newly created heap type.
+  Notes: Calls PyType_Ready. Does not call __new__, __init__, __init_subclass__, __set_name__ on the new class/bases/descriptors.
+  Version Added: 3.12
+```
+
+----------------------------------------
+
+TITLE: Enhance Typing Functions for Generic Aliases (list[int])
+DESCRIPTION: Functions `typing.get_origin`, `typing.get_args`, and `typing.get_type_hints` now properly support generic aliases using the new PEP 585 syntax, such as `list[int]`.
+SOURCE: https://github.com/python/cpython/blob/main/Misc/NEWS.d/3.9.0a6.rst#_snippet_3
+
+LANGUAGE: APIDOC
+CODE:
+```
+typing.get_origin(obj: Any) -> Any
+typing.get_args(obj: Any) -> tuple
+typing.get_type_hints(obj: Any, globalns: dict = None, localns: dict = None, include_extras: bool = False) -> dict
+
+# Behavior: These functions now correctly parse and return information
+# for generic aliases using the new PEP 585 syntax (e.g., list[int]).
+# Example:
+# typing.get_origin(list[int]) -> list
+# typing.get_args(list[int]) -> (<class 'int'>,)
+```
+
+----------------------------------------
+
+TITLE: Add text/rtf Mime Type Support to mimetypes Module
+DESCRIPTION: The `mimetypes` module now includes support for the `text/rtf` MIME type, expanding its ability to identify and handle Rich Text Format files.
+SOURCE: https://github.com/python/cpython/blob/main/Misc/NEWS.d/3.13.0a6.rst#_snippet_19
+
+LANGUAGE: APIDOC
+CODE:
+```
+Module: `mimetypes`
+  - Mime type `text/rtf` is now supported.
+```
+
+----------------------------------------
+
+TITLE: Creating Module Objects with types.ModuleType in Python
+DESCRIPTION: This snippet demonstrates how to create a new module object programmatically using the `types.ModuleType` callable in Python 2.3. It shows importing the `types` module, instantiating `ModuleType` with a name and docstring, and then accessing the module object and its `__doc__` attribute. This new functionality allows for programmatic module creation, potentially deprecating the `new` module.
+SOURCE: https://github.com/python/cpython/blob/main/Doc/whatsnew/2.3.rst#_snippet_34
+
+LANGUAGE: Python
+CODE:
+```
+import types
+m = types.ModuleType('abc','docstring')
+m
+m.__doc__
+```
+
+----------------------------------------
+
+TITLE: Struct Module Supports float complex and double complex C Types
+DESCRIPTION: The `struct` module now consistently supports the `float complex` and `double complex` C types.
+SOURCE: https://github.com/python/cpython/blob/main/Misc/NEWS.d/3.14.0b1.rst#_snippet_36
+
+LANGUAGE: APIDOC
+CODE:
+```
+struct module:
+  Support: Always supports 'float complex' and 'double complex' C types.
+```
+
+----------------------------------------
+
+TITLE: Adding Unicode Checkmark with Deprecated Text Alias in Python
+DESCRIPTION: This Python function demonstrates the usage of the deprecated `typing.Text` alias. It takes a `Text` (unicode string) input and returns a new `Text` string with a unicode checkmark appended. This alias was provided for Python 2/3 compatibility but is now discouraged in favor of `str`.
+SOURCE: https://github.com/python/cpython/blob/main/Doc/library/typing.rst#_snippet_174
+
+LANGUAGE: Python
+CODE:
+```
+def add_unicode_checkmark(text: Text) -> Text:
+    return text + u' \u2713'
+```
+
+----------------------------------------
+
+TITLE: Defining a Constrained Generic Function in Python
+DESCRIPTION: This function concatenate is generic with a constrained type variable A, allowing it to accept either str or bytes arguments. It performs concatenation on two inputs of the same constrained type and returns a value of that type.
+SOURCE: https://github.com/python/cpython/blob/main/Doc/library/typing.rst#_snippet_100
+
+LANGUAGE: Python
+CODE:
+```
+def concatenate[A: (str, bytes)](x: A, y: A) -> A:
+    """Add two strings or bytes objects together."""
+    return x + y
+```
+
+----------------------------------------
+
+TITLE: New YAML MIME Type in mimetypes Module
+DESCRIPTION: The `mimetypes` module now includes the `application/yaml` MIME type for YAML files, supporting both `.yaml` and `.yml` extensions, based on RFC 9512.
+SOURCE: https://github.com/python/cpython/blob/main/Doc/whatsnew/3.14.rst#_snippet_84
+
+LANGUAGE: APIDOC
+CODE:
+```
+mimetypes module:
+  Added YAML MIME Type (RFC 9512):
+    .yaml, .yml: application/yaml
+```
+
+----------------------------------------
+
+TITLE: New File Type Flags in Stat Module (Python)
+DESCRIPTION: The `stat` module now supports new `ST_MODE` flags: `S_IFDOOR`, `S_IFPORT`, and `S_IFWHT`. These constants can be used to identify specific file types when checking file modes.
+SOURCE: https://github.com/python/cpython/blob/main/Doc/whatsnew/3.4.rst#_snippet_39
+
+LANGUAGE: Python
+CODE:
+```
+import stat
+import os
+
+# Example: Check if a file is a 'door' (Solaris specific)
+# This will likely be False on most systems
+file_path = '/dev/door' # Or any path that might be a door
+
+try:
+    mode = os.stat(file_path).st_mode
+    if stat.S_ISDOOR(mode):
+        print(f"'{file_path}' is a door file.")
+    else:
+        print(f"'{file_path}' is not a door file.")
+except FileNotFoundError:
+    print(f"File '{file_path}' not found.")
+
+# You can also directly access the constants
+print(f"S_IFDOOR constant: {stat.S_IFDOOR}")
+print(f"S_IFPORT constant: {stat.S_IFPORT}")
+print(f"S_IFWHT constant: {stat.S_IFWHT}")
+```
+
+----------------------------------------
+
+TITLE: Instantiating Custom Type in Python Console (Pycon)
+DESCRIPTION: This Pycon snippet demonstrates how to import the custom module and create an instance of the Custom type. It shows the basic usage of the newly defined C-implemented Python type from the interactive interpreter.
+SOURCE: https://github.com/python/cpython/blob/main/Doc/extending/newtypes_tutorial.rst#_snippet_10
+
+LANGUAGE: Pycon
+CODE:
+```
+>>> import custom
+>>> mycustom = custom.Custom()
+```
+
+----------------------------------------
+
+TITLE: Implementing User-Defined Type Predicates with typing.TypeIs in Python
+DESCRIPTION: This comprehensive example showcases the use of `typing.TypeIs` to define a user-defined type predicate function (`is_parent`). When `is_parent(arg)` returns `True`, the static type checker narrows the type of `arg` to `Child` (intersection of `Parent` and `Child`), and when `False`, it narrows it to `Unrelated`, demonstrating advanced type narrowing capabilities.
+SOURCE: https://github.com/python/cpython/blob/main/Doc/library/typing.rst#_snippet_87
+
+LANGUAGE: python
+CODE:
+```
+from typing import assert_type, final, TypeIs
+
+class Parent: pass
+class Child(Parent): pass
+@final
+class Unrelated: pass
+
+def is_parent(val: object) -> TypeIs[Parent]:
+    return isinstance(val, Parent)
+
+def run(arg: Child | Unrelated):
+    if is_parent(arg):
+        # Type of ``arg`` is narrowed to the intersection
+        # of ``Parent`` and ``Child``, which is equivalent to
+        # ``Child``.
+        assert_type(arg, Child)
+    else:
+        # Type of ``arg`` is narrowed to exclude ``Parent``,
+        # so only ``Unrelated`` is left.
+        assert_type(arg, Unrelated)
+```
+
+----------------------------------------
+
+TITLE: Getting Origin of ParamSpecArgs/Kwargs in Python
+DESCRIPTION: This snippet demonstrates how to use `get_origin` from the `typing` module to retrieve the original `ParamSpec` object from its `args` and `kwargs` attributes. It shows that `P.args` and `P.kwargs` are instances of `ParamSpecArgs` and `ParamSpecKwargs` respectively, and `get_origin` correctly points back to the parent `ParamSpec`.
+SOURCE: https://github.com/python/cpython/blob/main/Doc/library/typing.rst#_snippet_115
+
+LANGUAGE: Python
+CODE:
+```
+from typing import ParamSpec, get_origin
+P = ParamSpec("P")
+get_origin(P.args) is P
+True
+get_origin(P.kwargs) is P
+True
+```
+
+----------------------------------------
+
+TITLE: Defining TypedDict with Functional Syntax (Invalid Identifiers) - Python
+DESCRIPTION: Shows how the functional TypedDict syntax can be used to define keys that are not valid Python identifiers (e.g., keywords, names with hyphens) or to prevent name mangling for private-like names. This overcomes the limitations of the class-based approach for such key names.
+SOURCE: https://github.com/python/cpython/blob/main/Doc/library/typing.rst#_snippet_140
+
+LANGUAGE: Python
+CODE:
+```
+Point2D = TypedDict('Point2D', {'in': int, 'x-y': int})
+Definition = TypedDict('Definition', {'__schema': str})  # not mangled
+```

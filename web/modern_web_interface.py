@@ -23,7 +23,15 @@ except ImportError:
     os.system("pip install flask --user")
     from flask import Flask, render_template, request, redirect, url_for, flash, send_file, jsonify
 
-# Import our modern converter
+# Import our modern converter - using absolute path
+import sys
+from pathlib import Path
+
+# Add project root to Python path
+project_root = str(Path(__file__).parent.parent.resolve())
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
+
 from converters.modern_pdf2docx_converter import ModernPDF2DOCXConverter
 
 app = Flask(__name__)

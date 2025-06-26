@@ -1,0 +1,927 @@
+TITLE: Use Module State for _testcapi Extension Module
+DESCRIPTION: Module state is now used for the `_testcapi` extension module, which is a technical change related to internal module management.
+SOURCE: https://github.com/python/cpython/blob/main/Misc/NEWS.d/3.13.0a3.rst#_snippet_80
+
+LANGUAGE: APIDOC
+CODE:
+```
+Module: _testcapi
+  Uses module state.
+```
+
+----------------------------------------
+
+TITLE: Import a Python Module with an Alias
+DESCRIPTION: This example illustrates how to import the `fibo` module and assign it an alias, `fib`, using the `import ... as ...` syntax. This allows referring to the module and its contents using the shorter alias, improving readability for long module names.
+SOURCE: https://github.com/python/cpython/blob/main/Doc/tutorial/modules.rst#_snippet_5
+
+LANGUAGE: Python
+CODE:
+```
+import fibo as fib
+fib.fib(500)
+```
+
+----------------------------------------
+
+TITLE: Import Specific Functions from a Python Module
+DESCRIPTION: This example shows how to import specific functions, `fib` and `fib2`, directly into the current namespace from the `fibo` module. This allows calling the functions without the module prefix, but the module name itself is not added to the namespace.
+SOURCE: https://github.com/python/cpython/blob/main/Doc/tutorial/modules.rst#_snippet_3
+
+LANGUAGE: Python
+CODE:
+```
+from fibo import fib, fib2
+fib(500)
+```
+
+----------------------------------------
+
+TITLE: Python `sys.builtin_module_names`
+DESCRIPTION: A data attribute in the `sys` module that lists the names of all built-in modules available in the Python interpreter. The interpreter first searches for modules in this list during import.
+SOURCE: https://github.com/python/cpython/blob/main/Doc/tutorial/modules.rst#_snippet_11
+
+LANGUAGE: APIDOC
+CODE:
+```
+sys.builtin_module_names: list of strings
+  Description: Contains the names of all built-in modules.
+```
+
+----------------------------------------
+
+TITLE: C API: PyModule_Check - Check if Object is Module
+DESCRIPTION: Checks if the given PyObject* p is a module object or a subtype of a module object. This function always succeeds and returns true if it is a module, false otherwise.
+SOURCE: https://github.com/python/cpython/blob/main/Doc/c-api/module.rst#_snippet_1
+
+LANGUAGE: APIDOC
+CODE:
+```
+int PyModule_Check(PyObject *p)
+  Parameters:
+    p: PyObject* - The object to check.
+  Returns: int - True if p is a module object or a subtype, false otherwise.
+  Description: Return true if p is a module object, or a subtype of a module object. This function always succeeds.
+```
+
+----------------------------------------
+
+TITLE: Import and Access Functions from a Python Module
+DESCRIPTION: This example demonstrates how to import the `fibo` module into a Python interpreter session. After importing, functions defined within the module, such as `fib` and `fib2`, can be accessed using the `module_name.function_name` syntax. It also shows how to check the module's `__name__` attribute.
+SOURCE: https://github.com/python/cpython/blob/main/Doc/tutorial/modules.rst#_snippet_1
+
+LANGUAGE: Python
+CODE:
+```
+import fibo
+fibo.fib(1000)
+fibo.fib2(100)
+fibo.__name__
+```
+
+----------------------------------------
+
+TITLE: C API: PyImport_AddModuleRef
+DESCRIPTION: Returns the module object corresponding to a module name. If the module is not in the modules dictionary, a new empty module object is created and inserted. It returns a strong reference to the module on success, or NULL with an exception on failure. The module name is decoded from UTF-8. This function does not load or import the module; use PyImport_ImportModule or its variants to import. Package structures implied by dotted names are not created if not already present. (Added in version 3.13)
+SOURCE: https://github.com/python/cpython/blob/main/Doc/c-api/import.rst#_snippet_6
+
+LANGUAGE: APIDOC
+CODE:
+```
+PyObject* PyImport_AddModuleRef(const char *name)
+  name: The name of the module (UTF-8 encoded string).
+```
+
+----------------------------------------
+
+TITLE: C API: PyState_FindModule
+DESCRIPTION: Retrieves a module object using its module definition in the context of the current interpreter. This function only works for modules created using legacy single-phase initialization, not multi-phase initialization. Returns the module object or NULL if not found.
+SOURCE: https://github.com/python/cpython/blob/main/Doc/c-api/module.rst#_snippet_41
+
+LANGUAGE: APIDOC
+CODE:
+```
+PyObject* PyState_FindModule(PyModuleDef *def)
+  def: The module definition.
+  Returns: The module object, or NULL if not found.
+```
+
+----------------------------------------
+
+TITLE: Example Script for Module Analysis (bacon.py)
+DESCRIPTION: This Python script, named `bacon.py`, demonstrates various import statements, including standard library modules (`re`, `itertools`) and modules that might or might not exist (`baconhameggs`, `guido.python.ham`). It is designed to be analyzed by the `ModuleFinder` class to identify its dependencies.
+SOURCE: https://github.com/python/cpython/blob/main/Doc/library/modulefinder.rst#_snippet_0
+
+LANGUAGE: Python
+CODE:
+```
+import re, itertools
+
+try:
+    import baconhameggs
+except ImportError:
+    pass
+
+try:
+    import guido.python.ham
+except ImportError:
+    pass
+```
+
+----------------------------------------
+
+TITLE: Finding Module in Interpreter State - CPython C API
+DESCRIPTION: This function returns the module object created from a PyModuleDef for the current interpreter. It requires the module object to have been attached to the interpreter state with PyState_AddModule beforehand. It returns NULL if the corresponding module object is not found or has not been attached yet, and is intended for modules created using single-phase initialization.
+SOURCE: https://github.com/python/cpython/blob/main/Doc/c-api/module.rst#_snippet_49
+
+LANGUAGE: C
+CODE:
+```
+PyObject* PyState_FindModule(PyModuleDef *def)
+```
+
+----------------------------------------
+
+TITLE: Inspect Module Contents with dir() Function
+DESCRIPTION: This snippet demonstrates using the built-in `dir()` function to list the names (attributes, functions, classes) defined within imported modules like `fibo` and `sys`. It provides a sorted list of strings representing the module's contents.
+SOURCE: https://github.com/python/cpython/blob/main/Doc/tutorial/modules.rst#_snippet_18
+
+LANGUAGE: Python
+CODE:
+```
+>>> import fibo, sys
+>>> dir(fibo)
+['__name__', 'fib', 'fib2']
+>>> dir(sys)
+['__breakpointhook__', '__displayhook__', '__doc__', '__excepthook__',
+ '__interactivehook__', '__loader__', '__name__', '__package__', '__spec__',
+ '__stderr__', '__stdin__', '__stdout__', '__unraisablehook__',
+ '_clear_type_cache', '_current_frames', '_debugmallocstats', '_framework',
+ '_getframe', '_git', '_home', '_xoptions', 'abiflags', 'addaudithook',
+ 'api_version', 'argv', 'audit', 'base_exec_prefix', 'base_prefix',
+ 'breakpointhook', 'builtin_module_names', 'byteorder', 'call_tracing',
+ 'callstats', 'copyright', 'displayhook', 'dont_write_bytecode', 'exc_info',
+ 'excepthook', 'exec_prefix', 'executable', 'exit', 'flags', 'float_info',
+ 'float_repr_style', 'get_asyncgen_hooks', 'get_coroutine_origin_tracking_depth',
+ 'getallocatedblocks', 'getdefaultencoding', 'getdlopenflags',
+ 'getfilesystemencodeerrors', 'getfilesystemencoding', 'getprofile',
+ 'getrecursionlimit', 'getrefcount', 'getsizeof', 'getswitchinterval',
+ 'gettrace', 'hash_info', 'hexversion', 'implementation', 'int_info',
+ 'intern', 'is_finalizing', 'last_traceback', 'last_type', 'last_value',
+ 'maxsize', 'maxunicode', 'meta_path', 'modules', 'path', 'path_hooks',
+ 'path_importer_cache', 'platform', 'prefix', 'ps1', 'ps2', 'pycache_prefix',
+ 'set_asyncgen_hooks', 'set_coroutine_origin_tracking_depth', 'setdlopenflags',
+ 'setprofile', 'setrecursionlimit', 'setswitchinterval', 'settrace', 'stderr',
+ 'stdin', 'stdout', 'thread_info', 'unraisablehook', 'version', 'version_info',
+ 'warnoptions']
+```
+
+----------------------------------------
+
+TITLE: Assign a Module Function to a Local Variable in Python
+DESCRIPTION: This snippet illustrates how to assign a function imported from a module to a local variable. This allows calling the function directly using the local variable name, simplifying repeated calls without needing to prefix it with the module name.
+SOURCE: https://github.com/python/cpython/blob/main/Doc/tutorial/modules.rst#_snippet_2
+
+LANGUAGE: Python
+CODE:
+```
+fib = fibo.fib
+fib(500)
+```
+
+----------------------------------------
+
+TITLE: C API: PyModuleDef - Module Definition Structure
+DESCRIPTION: The PyModuleDef is a statically allocated, constant structure used to define how a C extension module should be created. It allows for management of module state, a piece of memory allocated and cleared with the module object, which cannot be manipulated by Python code. This definition is crucial for creating extension modules, including dynamically.
+SOURCE: https://github.com/python/cpython/blob/main/Doc/c-api/module.rst#_snippet_12
+
+LANGUAGE: APIDOC
+CODE:
+```
+PyModuleDef
+  Description: The module definition struct, which holds all information needed to create a module.
+  Usage: Used to define an extension's "main" module object and to create extension modules dynamically.
+  Features: Allows management of module state (a piece of memory allocated and cleared with the module object), which Python code cannot replace or delete.
+```
+
+----------------------------------------
+
+TITLE: Extend Python Module Search Path with sys.path
+DESCRIPTION: This example illustrates how to dynamically add a new directory to Python's module search path (`sys.path`) using standard list operations. This allows the interpreter to find modules located in the specified custom directory.
+SOURCE: https://github.com/python/cpython/blob/main/Doc/tutorial/modules.rst#_snippet_17
+
+LANGUAGE: Python
+CODE:
+```
+>>> import sys
+>>> sys.path.append('/ufs/guido/lib/python')
+```
+
+----------------------------------------
+
+TITLE: Demonstrating Module Object Isolation - Python
+DESCRIPTION: This Python console example illustrates how multiple module objects can be created from the same shared library within a single Python process. It shows that re-importing a module after deleting it from sys.modules results in a new, distinct module object, emphasizing the isolation of per-module state. This behavior is crucial for extensions designed to work correctly with multiple interpreters or repeated initialization/finalization cycles.
+SOURCE: https://github.com/python/cpython/blob/main/Doc/howto/isolating-extensions.rst#_snippet_0
+
+LANGUAGE: pycon
+CODE:
+```
+import sys
+import binascii
+old_binascii = binascii
+del sys.modules['binascii']
+import binascii  # create a new module object
+old_binascii == binascii
+False
+```
+
+----------------------------------------
+
+TITLE: C API: PyImport_ExecCodeModule
+DESCRIPTION: Loads a module given its name (e.g., 'package.module') and a code object obtained from a Python bytecode file or the built-in 'compile' function. It returns a new reference to the module object, or NULL with an exception on error. The module name is removed from sys.modules in error cases to prevent incompletely initialized modules from being left in the system.
+SOURCE: https://github.com/python/cpython/blob/main/Doc/c-api/import.rst#_snippet_9
+
+LANGUAGE: APIDOC
+CODE:
+```
+PyObject* PyImport_ExecCodeModule(const char *name, PyObject *co)
+  name: The name of the module (UTF-8 encoded string).
+  co: The code object to execute.
+```
+
+----------------------------------------
+
+TITLE: Python Import Behavior with Single-phase Modules
+DESCRIPTION: This Python code snippet illustrates the unique import behavior of legacy single-phase extension modules. It demonstrates that while subsequent imports create new module objects and dictionaries, the underlying functions and exception classes within the module maintain their original object identities, highlighting a CPython implementation detail.
+SOURCE: https://github.com/python/cpython/blob/main/Doc/c-api/extension-modules.rst#_snippet_5
+
+LANGUAGE: python
+CODE:
+```
+import sys
+import _testsinglephase as one
+del sys.modules['_testsinglephase']
+import _testsinglephase as two
+>>> one is two
+False
+>>> one.__dict__ is two.__dict__
+False
+>>> one.sum is two.sum
+True
+>>> one.error is two.error
+True
+```
+
+----------------------------------------
+
+TITLE: C Structure for Built-in Module Entries (_inittab)
+DESCRIPTION: Defines the `_inittab` structure, which describes a single entry in the list of built-in modules. Programs embedding Python may use an array of these structures in conjunction with `PyImport_ExtendInittab` to provide additional built-in modules. It consists of a module name and an initialization function.
+SOURCE: https://github.com/python/cpython/blob/main/Doc/c-api/import.rst#_snippet_25
+
+LANGUAGE: APIDOC
+CODE:
+```
+struct _inittab
+  Members:
+    name: const char* - The module name, as an ASCII encoded string.
+    initfunc: PyObject* (*)(void) - Initialization function for a module built into the interpreter.
+```
+
+----------------------------------------
+
+TITLE: C API: PyModule_GetDef - Get Module Definition Structure
+DESCRIPTION: Returns a pointer to the PyModuleDef structure from which the module was created. This structure provides a static description of how a module should be created. Returns NULL if the module was not created from a definition.
+SOURCE: https://github.com/python/cpython/blob/main/Doc/c-api/module.rst#_snippet_9
+
+LANGUAGE: APIDOC
+CODE:
+```
+PyModuleDef* PyModule_GetDef(PyObject *module)
+  Parameters:
+    module: PyObject* - The module object.
+  Returns: PyModuleDef* - A pointer to the PyModuleDef struct, or NULL if not created from a definition.
+  Description: Return a pointer to the PyModuleDef struct from which the module was created, or NULL if the module wasn't created from a definition.
+```
+
+----------------------------------------
+
+TITLE: Finding Module Specifications in Python
+DESCRIPTION: This function finds the module specification (spec) for a given module, optionally relative to a specified package name. It first checks `sys.modules` and then performs a search using `sys.meta_path`. If the module is a submodule, its parent module is automatically imported. As of Python 3.7, it raises `ModuleNotFoundError` instead of `AttributeError` if the `package` argument is not a valid package.
+SOURCE: https://github.com/python/cpython/blob/main/Doc/library/importlib.rst#_snippet_34
+
+LANGUAGE: Python
+CODE:
+```
+importlib.util.find_spec(name, package=None)
+```
+
+----------------------------------------
+
+TITLE: Implementing Lazy Module Loading in Python
+DESCRIPTION: This class postpones the execution of a module's loader until an attribute of the module is accessed. It requires the underlying loader to define `exec_module` and its `create_module` method to return `None` or a module instance, as it needs control over the module type used for lazy loading.
+SOURCE: https://github.com/python/cpython/blob/main/Doc/library/importlib.rst#_snippet_40
+
+LANGUAGE: Python
+CODE:
+```
+class importlib.util.LazyLoader(loader):
+```
+
+----------------------------------------
+
+TITLE: site Module Loader Fallback Mechanism
+DESCRIPTION: The `site` module now includes a fallback mechanism for module loaders. If a module does not define `__loader__`, the system will now fall back to using `__spec__.loader`. This change improves robustness in module loading scenarios.
+SOURCE: https://github.com/python/cpython/blob/main/Doc/whatsnew/3.10.rst#_snippet_104
+
+LANGUAGE: APIDOC
+CODE:
+```
+Module Loading Behavior:
+  If module.__loader__ is not defined, use module.__spec__.loader.
+```
+
+----------------------------------------
+
+TITLE: Python pkgutil.walk_packages Function for Recursive Module Discovery
+DESCRIPTION: Recursively yields `ModuleInfo` for all modules on a given path, or all accessible modules if no path is specified. It imports packages to find submodules via their `__path__` attribute. An optional `onerror` function can be provided to handle exceptions during package import; otherwise, `ImportError`s are caught and ignored, while other exceptions propagate.
+SOURCE: https://github.com/python/cpython/blob/main/Doc/library/pkgutil.rst#_snippet_5
+
+LANGUAGE: APIDOC
+CODE:
+```
+function walk_packages(path=None, prefix='', onerror=None)
+  Description: Yields ModuleInfo for all modules recursively on path, or all accessible modules if path is None.
+  Parameters:
+    path: (Optional) A list of paths to look for modules in, or None.
+    prefix: (Optional) A string to prepend to every module name on output.
+    onerror: (Optional) A function called with the package name if an exception occurs during import. If not supplied, ImportError is ignored, while other exceptions propagate.
+  Yields: ModuleInfo objects.
+```
+
+LANGUAGE: Python
+CODE:
+```
+# list all modules python can access
+walk_packages()
+
+# list all submodules of ctypes
+```
+
+----------------------------------------
+
+TITLE: Define CPython Extension Module Structure (PyModuleDef)
+DESCRIPTION: Documents the `PyModuleDef` structure, which is essential for defining C extension modules in CPython. It details members like `m_base`, `m_name`, `m_doc`, `m_size`, `m_methods`, `m_slots`, `m_traverse`, `m_clear`, and `m_free`, explaining their roles in module initialization, state management, and garbage collection. This structure must be statically allocated and remain valid while any modules created from it exist.
+SOURCE: https://github.com/python/cpython/blob/main/Doc/c-api/module.rst#_snippet_13
+
+LANGUAGE: APIDOC
+CODE:
+```
+PyModuleDef:
+  Description: A structure that must be statically allocated (or be otherwise guaranteed to be valid while any modules created from it exist).
+  Members:
+    m_base: PyModuleDef_Base
+      Description: Always initialize this member to PyModuleDef_HEAD_INIT.
+    m_name: const char *
+      Description: Name for the new module.
+    m_doc: const char *
+      Description: Docstring for the module; usually a docstring variable created with PyDoc_STRVAR is used.
+    m_size: Py_ssize_t
+      Description: Module state may be kept in a per-module memory area that can be retrieved with PyModule_GetState. This memory area is allocated based on m_size on module creation, and freed when the module object is deallocated. Setting it to a non-negative value means that the module can be re-initialized and specifies the additional amount of memory it requires for its state. Setting m_size to -1 means that the module does not support sub-interpreters because it has global state. Negative m_size is only allowed when using legacy single-phase initialization or when creating modules dynamically.
+    m_methods: PyMethodDef*
+      Description: A pointer to a table of module-level functions, described by PyMethodDef values. Can be NULL if no functions are present.
+    m_slots: PyModuleDef_Slot*
+      Description: An array of slot definitions for multi-phase initialization, terminated by a {0, NULL} entry. When using legacy single-phase initialization, m_slots must be NULL. (Version changed: 3.5)
+    m_traverse: traverseproc
+      Description: A traversal function to call during GC traversal of the module object, or NULL if not needed. This function is not called if the module state was requested but is not allocated yet (m_size > 0 and PyModule_GetState() is NULL). (Version changed: 3.9)
+    m_clear: inquiry
+      Description: A clear function to call during GC clearing of the module object, or NULL if not needed. This function is not called if the module state was requested but is not allocated yet (m_size > 0 and PyModule_GetState() is NULL). Like PyTypeObject.tp_clear, this function is not always called before a module is deallocated. (Version changed: 3.9)
+    m_free: freefunc
+      Description: A function to call during deallocation of the module object, or NULL if not needed. This function is not called if the module state was requested but is not allocated yet (m_size > 0 and PyModule_GetState() is NULL). (Version changed: 3.9)
+```
+
+----------------------------------------
+
+TITLE: Analyzing Python Script Dependencies with ModuleFinder
+DESCRIPTION: This Python script uses the `ModuleFinder` class to analyze `bacon.py`. It initializes `ModuleFinder`, runs the analysis on the specified script, and then prints a report of all loaded modules, their global names, and any modules that were not found or imported.
+SOURCE: https://github.com/python/cpython/blob/main/Doc/library/modulefinder.rst#_snippet_1
+
+LANGUAGE: Python
+CODE:
+```
+from modulefinder import ModuleFinder
+
+finder = ModuleFinder()
+finder.run_script('bacon.py')
+
+print('Loaded modules:')
+for name, mod in finder.modules.items():
+    print('%s: ' % name, end='')
+    print(','.join(list(mod.globalnames.keys())[:3]))
+
+print('-'*50)
+print('Modules not imported:')
+print('\n'.join(finder.badmodules.keys()))
+```
+
+----------------------------------------
+
+TITLE: Accessing Module State from CPython Type Objects
+DESCRIPTION: This C snippet demonstrates how to efficiently retrieve the module-level state directly from a CPython type object using `PyType_GetModuleState`. This function combines the steps of getting the associated module and then its state, simplifying error handling and providing direct access to module-specific data.
+SOURCE: https://github.com/python/cpython/blob/main/Doc/howto/isolating-extensions.rst#_snippet_9
+
+LANGUAGE: C
+CODE:
+```
+my_struct *state = (my_struct*)PyType_GetModuleState(type);
+if (state == NULL) {
+    return NULL;
+}
+```
+
+----------------------------------------
+
+TITLE: API Documentation: Python Module Special Methods for Attribute Access
+DESCRIPTION: This section describes special names at the module level that can be used to customize access to module attributes. These methods provide hooks for controlling how attributes are looked up and how 'dir()' behaves for a module, offering more fine-grained control over module behavior.
+SOURCE: https://github.com/python/cpython/blob/main/Doc/reference/datamodel.rst#_snippet_68
+
+LANGUAGE: APIDOC
+CODE:
+```
+__getattr__(name: str) (module attribute)
+  - Purpose: Customizes module attribute lookup.
+  - Parameters:
+    - name: str - The name of an attribute.
+  - Returns: Any - The computed value of the attribute.
+  - Behavior: Called if an attribute is not found on a module object through the normal lookup (i.e., object.__getattribute__). If found in the module's __dict__, it is called with the attribute name and its result is returned. Raises AttributeError if the attribute cannot be found.
+```
+
+LANGUAGE: APIDOC
+CODE:
+```
+__dir__() (module attribute)
+  - Purpose: Customizes behavior of dir() for a module.
+  - Parameters: None.
+  - Returns: Iterable[str] - An iterable of strings representing the names accessible on the module.
+  - Behavior: If present, this function overrides the standard dir() search on a module.
+```
+
+LANGUAGE: APIDOC
+CODE:
+```
+__class__ (module attribute)
+  - Purpose: Allows fine-grained customization of module behavior (e.g., setting attributes, properties).
+  - Type: Writable attribute.
+  - Behavior: Can be set to a subclass of types.ModuleType. Affects lookups made using the attribute access syntax; direct access to the module globals is unaffected. Writable since Python 3.5.
+```
+
+----------------------------------------
+
+TITLE: site Module for Path Customization
+DESCRIPTION: Details the role of the site module in processing site-packages directories and providing mechanisms for further path customization through sitecustomize and usercustomize modules.
+SOURCE: https://github.com/python/cpython/blob/main/Doc/library/sys_path_init.rst#_snippet_4
+
+LANGUAGE: APIDOC
+CODE:
+```
+site: module
+  A standard Python module processed during startup.
+  It adds 'site-packages' directories to the module search path (sys.path).
+  Provides mechanisms for customizing the search path through:
+    - sitecustomize.py: A module that can be created by a user or administrator to customize site-specific behavior.
+    - usercustomize.py: A module that can be created by a user to customize user-specific behavior.
+```
+
+----------------------------------------
+
+TITLE: C API: PyImport_ExecCodeModuleObject Function
+DESCRIPTION: Executes a code object as a module, similar to PyImport_ExecCodeModuleEx, but also allows setting the module's __cached__ attribute. This is the preferred function among the three for module execution.
+SOURCE: https://github.com/python/cpython/blob/main/Doc/c-api/import.rst#_snippet_12
+
+LANGUAGE: APIDOC
+CODE:
+```
+PyObject* PyImport_ExecCodeModuleObject(PyObject *name, PyObject *co, PyObject *pathname, PyObject *cpathname)
+  name: The name of the module (PyObject*).
+  co: The code object to execute (PyObject*).
+  pathname: The path to set for the module's __file__ attribute (PyObject*, can be NULL).
+  cpathname: The path to set for the module's __cached__ attribute (PyObject*, can be NULL).
+Returns: A new reference to the module object on success, or NULL on failure with an exception set.
+Deprecated: Setting __cached__ is deprecated since 3.12.
+```
+
+----------------------------------------
+
+TITLE: C API: PyImport_ReloadModule
+DESCRIPTION: Reloads a specified module. It returns a new reference to the reloaded module, or NULL with an exception set on failure (the module object still exists in this case).
+SOURCE: https://github.com/python/cpython/blob/main/Doc/c-api/import.rst#_snippet_5
+
+LANGUAGE: APIDOC
+CODE:
+```
+PyObject* PyImport_ReloadModule(PyObject *m)
+  m: The module object to reload.
+```
+
+----------------------------------------
+
+TITLE: Accessing Per-Module State in C Extension Functions
+DESCRIPTION: This C snippet demonstrates how to access the module-specific state from within a C function belonging to a Python extension module. It uses `PyModule_GetState` to retrieve a pointer to the module's allocated state, which can then be cast to a custom structure (`my_struct`) to access module-local data.
+SOURCE: https://github.com/python/cpython/blob/main/Doc/howto/isolating-extensions.rst#_snippet_3
+
+LANGUAGE: C
+CODE:
+```
+static PyObject *
+func(PyObject *module, PyObject *args)
+{
+    my_struct *state = (my_struct*)PyModule_GetState(module);
+    if (state == NULL) {
+        return NULL;
+    }
+}
+```
+
+----------------------------------------
+
+TITLE: C API: PyImport_ImportFrozenModuleObject Function
+DESCRIPTION: Loads a frozen module by its name. Returns 1 on success, 0 if the module is not found, and -1 with an exception if initialization fails. To access the module, use `PyImport_ImportModule`.
+SOURCE: https://github.com/python/cpython/blob/main/Doc/c-api/import.rst#_snippet_19
+
+LANGUAGE: APIDOC
+CODE:
+```
+int PyImport_ImportFrozenModuleObject(PyObject *name)
+  name: The name of the frozen module (PyObject*).
+Returns: 1 for success, 0 if module not found, -1 with exception on failure.
+```
+
+----------------------------------------
+
+TITLE: doctest Module: Loader Fallback
+DESCRIPTION: The `doctest` module now falls back to `__spec__.loader` when `__loader__` is not defined in a module, improving module loading robustness.
+SOURCE: https://github.com/python/cpython/blob/main/Doc/whatsnew/3.10.rst#_snippet_71
+
+LANGUAGE: APIDOC
+CODE:
+```
+Module: doctest
+  Behavior Change:
+    When __loader__ is not defined, fall back to __spec__.loader.
+```
+
+----------------------------------------
+
+TITLE: Implementing Self-Tests in Python Modules
+DESCRIPTION: Similar to the main logic pattern, this snippet shows how a support module can include a `self_test()` function. This test will run only when the module is executed directly, allowing developers to verify the module's functionality independently without affecting other parts of the program when imported.
+SOURCE: https://github.com/python/cpython/blob/main/Doc/faq/library.rst#_snippet_7
+
+LANGUAGE: Python
+CODE:
+```
+if __name__ == "__main__":
+    self_test()
+```
+
+----------------------------------------
+
+TITLE: Creating Module Objects with types.ModuleType in Python
+DESCRIPTION: This snippet demonstrates how to create a new module object programmatically using the `types.ModuleType` callable in Python 2.3. It shows importing the `types` module, instantiating `ModuleType` with a name and docstring, and then accessing the module object and its `__doc__` attribute. This new functionality allows for programmatic module creation, potentially deprecating the `new` module.
+SOURCE: https://github.com/python/cpython/blob/main/Doc/whatsnew/2.3.rst#_snippet_34
+
+LANGUAGE: Python
+CODE:
+```
+import types
+m = types.ModuleType('abc','docstring')
+m
+m.__doc__
+```
+
+----------------------------------------
+
+TITLE: Creating Modules from Specifications in Python
+DESCRIPTION: This function creates a new module based on a provided module specification (`spec`) and its loader's `create_module` method. It is preferred over using `types.ModuleType` directly because it leverages the `spec` to set as many import-controlled attributes on the module as possible, ensuring proper initialization and avoiding attribute errors.
+SOURCE: https://github.com/python/cpython/blob/main/Doc/library/importlib.rst#_snippet_35
+
+LANGUAGE: Python
+CODE:
+```
+importlib.util.module_from_spec(spec)
+```
+
+----------------------------------------
+
+TITLE: Python pkgutil.iter_modules Function
+DESCRIPTION: Yields `ModuleInfo` objects for all submodules found on a specified path, or for all top-level modules on `sys.path` if no path is provided. This function primarily works for finders that define an `iter_modules()` method, with built-in implementations for `importlib.machinery.FileFinder` and `zipimport.zipimporter`.
+SOURCE: https://github.com/python/cpython/blob/main/Doc/library/pkgutil.rst#_snippet_4
+
+LANGUAGE: APIDOC
+CODE:
+```
+function iter_modules(path=None, prefix='')
+  Description: Yields ModuleInfo for all submodules on path, or all top-level modules on sys.path if path is None.
+  Parameters:
+    path: (Optional) A list of paths to look for modules in, or None.
+    prefix: (Optional) A string to prepend to every module name on output.
+  Yields: ModuleInfo objects.
+```
+
+----------------------------------------
+
+TITLE: Python `sys.path`
+DESCRIPTION: A list of strings that specifies the search path for modules. When a module is imported, the interpreter searches for the module file (`.py`) in the directories listed in `sys.path` in order. It is initialized from the script's directory, `PYTHONPATH` environment variable, and installation defaults (like `site-packages`). It can be modified by Python programs.
+SOURCE: https://github.com/python/cpython/blob/main/Doc/tutorial/modules.rst#_snippet_12
+
+LANGUAGE: APIDOC
+CODE:
+```
+sys.path: list of strings
+  Description: List of directory names where the interpreter searches for modules.
+  Initialization sources:
+    - Directory containing the input script (or current directory).
+    - PYTHONPATH environment variable.
+    - Installation-dependent default (e.g., site-packages).
+  Modifiability: Can be modified by Python programs after initialization.
+```
+
+----------------------------------------
+
+TITLE: Python math Module Test Setup Import
+DESCRIPTION: An example of importing the `fsum` function from the `math` module, typically used for setting up a test environment or demonstrating module access.
+SOURCE: https://github.com/python/cpython/blob/main/Doc/library/math.rst#_snippet_0
+
+LANGUAGE: Python
+CODE:
+```
+from math import fsum
+```
+
+----------------------------------------
+
+TITLE: C API: PyImport_ExtendInittab Function
+DESCRIPTION: Adds a collection of modules to the table of built-in modules. The `newtab` array must end with a sentinel entry which contains `NULL` for the `name` field; failure to provide the sentinel value can result in a memory fault. Returns 0 on success or -1 if insufficient memory could be allocated to extend the internal table. In the event of failure, no modules are added. This must be called before `Py_Initialize`. If Python is initialized multiple times, this function must be called before each Python initialization.
+SOURCE: https://github.com/python/cpython/blob/main/Doc/c-api/import.rst#_snippet_26
+
+LANGUAGE: APIDOC
+CODE:
+```
+int PyImport_ExtendInittab(struct _inittab *newtab)
+  Parameters:
+    newtab: struct _inittab* - An array of _inittab structures, terminated by a sentinel entry with NULL for the name field.
+  Returns: int - 0 on success or -1 if insufficient memory could be allocated.
+```
+
+----------------------------------------
+
+TITLE: Accessing Module State from CPython Methods
+DESCRIPTION: This C snippet demonstrates how to access module-level state from a CPython method using the `METH_METHOD` calling convention. It shows how to retrieve the `defining_class` parameter and then use `PyType_GetModuleState` to obtain the associated module's state, enabling methods to interact with module-specific data.
+SOURCE: https://github.com/python/cpython/blob/main/Doc/howto/isolating-extensions.rst#_snippet_11
+
+LANGUAGE: C
+CODE:
+```
+static PyObject *
+example_method(PyObject *self,
+        PyTypeObject *defining_class,
+        PyObject *const *args,
+        Py_ssize_t nargs,
+        PyObject *kwnames)
+{
+    my_struct *state = (my_struct*)PyType_GetModuleState(defining_class);
+    if (state == NULL) {
+        return NULL;
+    }
+    ... // rest of logic
+}
+```
+
+----------------------------------------
+
+TITLE: Demonstrating Submodule and Attribute Access in Python
+DESCRIPTION: This interactive Python session illustrates how importing a package like 'spam' makes its submodules (e.g., 'spam.foo') and any names exposed by its __init__.py (e.g., 'spam.Foo') directly accessible as attributes of the parent package. This behavior is fundamental to Python's import system, ensuring consistency between sys.modules entries and package attributes.
+SOURCE: https://github.com/python/cpython/blob/main/Doc/reference/import.rst#_snippet_9
+
+LANGUAGE: Python
+CODE:
+```
+import spam
+spam.foo
+spam.Foo
+```
+
+----------------------------------------
+
+TITLE: C API: PyModule_GetState - Get Module State Pointer
+DESCRIPTION: Returns a pointer to the 'state' of the module, which is a block of memory allocated at module creation time. This state is managed together with the module object and cannot be replaced or deleted by Python code. Returns NULL if no state is associated.
+SOURCE: https://github.com/python/cpython/blob/main/Doc/c-api/module.rst#_snippet_8
+
+LANGUAGE: APIDOC
+CODE:
+```
+void* PyModule_GetState(PyObject *module)
+  Parameters:
+    module: PyObject* - The module object.
+  Returns: void* - A pointer to the module's state memory block, or NULL.
+  Description: Return the "state" of the module, that is, a pointer to the block of memory allocated at module creation time, or NULL. See PyModuleDef.m_size.
+```
+
+----------------------------------------
+
+TITLE: Embedding Python Interpreter and Initializing Custom Module (C)
+DESCRIPTION: This C `main` function demonstrates how to embed the Python interpreter and register a custom module (`spam`) before initialization. It uses `PyImport_AppendInittab` to add the module to the built-in table, configures the interpreter with `PyConfig`, initializes it with `Py_InitializeFromConfig`, and then optionally imports the module using `PyImport_ImportModule`.
+SOURCE: https://github.com/python/cpython/blob/main/Doc/extending/extending.rst#_snippet_14
+
+LANGUAGE: C
+CODE:
+```
+#define PY_SSIZE_T_CLEAN
+#include <Python.h>
+
+int
+main(int argc, char *argv[])
+{
+    PyStatus status;
+    PyConfig config;
+    PyConfig_InitPythonConfig(&config);
+
+    /* Add a built-in module, before Py_Initialize */
+    if (PyImport_AppendInittab("spam", PyInit_spam) == -1) {
+        fprintf(stderr, "Error: could not extend in-built modules table\n");
+        exit(1);
+    }
+
+    /* Pass argv[0] to the Python interpreter */
+    status = PyConfig_SetBytesString(&config, &config.program_name, argv[0]);
+    if (PyStatus_Exception(status)) {
+        goto exception;
+    }
+
+    /* Initialize the Python interpreter.  Required.
+       If this step fails, it will be a fatal error. */
+    status = Py_InitializeFromConfig(&config);
+    if (PyStatus_Exception(status)) {
+        goto exception;
+    }
+    PyConfig_Clear(&config);
+
+    /* Optionally import the module; alternatively,
+       import can be deferred until the embedded script
+       imports it. */
+    PyObject *pmodule = PyImport_ImportModule("spam");
+    if (!pmodule) {
+        PyErr_Print();
+        fprintf(stderr, "Error: could not import module 'spam'\n");
+    }
+
+    // ... use Python C API here ...
+
+    return 0;
+
+  exception:
+     PyConfig_Clear(&config);
+     Py_ExitStatusException(status);
+}
+```
+
+----------------------------------------
+
+TITLE: APIDOC: PyModule_FromDefAndSpec - Create Module from Definition and Spec
+DESCRIPTION: This macro simplifies module creation by calling PyModule_FromDefAndSpec2 with the appropriate API version (PYTHON_API_VERSION or PYTHON_ABI_VERSION for the limited API). It's a convenience wrapper for common module initialization.
+SOURCE: https://github.com/python/cpython/blob/main/Doc/c-api/module.rst#_snippet_21
+
+LANGUAGE: APIDOC
+CODE:
+```
+PyObject * PyModule_FromDefAndSpec(PyModuleDef *def, PyObject *spec)
+```
+
+----------------------------------------
+
+TITLE: C API: PyImport_ImportModuleEx
+DESCRIPTION: Imports a module, similar to the built-in Python function __import__. It returns a new reference to the imported module or top-level package, or NULL with an exception on failure. If a submodule is requested, the top-level package is returned unless a non-empty 'fromlist' is provided. Incomplete module objects are removed from sys.modules on import failure.
+SOURCE: https://github.com/python/cpython/blob/main/Doc/c-api/import.rst#_snippet_1
+
+LANGUAGE: APIDOC
+CODE:
+```
+PyObject* PyImport_ImportModuleEx(const char *name, PyObject *globals, PyObject *locals, PyObject *fromlist)
+  name: The name of the module to import (UTF-8 encoded string).
+  globals: A dictionary of global variables.
+  locals: A dictionary of local variables.
+  fromlist: A list of names to import from the module.
+```
+
+----------------------------------------
+
+TITLE: spammodule.h - C API Header for Exporting and Client Modules
+DESCRIPTION: This header file defines the C API for the spam module, using preprocessor directives to differentiate between the exporting module (SPAM_MODULE defined) and client modules. It declares PySpam_System for the exporting module and provides macros and an import_spam function for client modules to access the API via the PyCapsule named 'spam._C_API'. This structure ensures type-safe access to the exported C functions.
+SOURCE: https://github.com/python/cpython/blob/main/Doc/extending/extending.rst#_snippet_43
+
+LANGUAGE: C
+CODE:
+```
+   #ifndef Py_SPAMMODULE_H
+   #define Py_SPAMMODULE_H
+   #ifdef __cplusplus
+   extern "C" {
+   #endif
+
+   /* Header file for spammodule */
+
+   /* C API functions */
+   #define PySpam_System_NUM 0
+   #define PySpam_System_RETURN int
+   #define PySpam_System_PROTO (const char *command)
+
+   /* Total number of C API pointers */
+   #define PySpam_API_pointers 1
+
+
+   #ifdef SPAM_MODULE
+   /* This section is used when compiling spammodule.c */
+
+   static PySpam_System_RETURN PySpam_System PySpam_System_PROTO;
+
+   #else
+   /* This section is used in modules that use spammodule's API */
+
+   static void **PySpam_API;
+
+   #define PySpam_System \
+    (*(PySpam_System_RETURN (*)PySpam_System_PROTO) PySpam_API[PySpam_System_NUM])
+
+   /* Return -1 on error, 0 on success.
+    * PyCapsule_Import will set an exception if there's an error.
+    */
+   static int
+   import_spam(void)
+   {
+       PySpam_API = (void **)PyCapsule_Import("spam._C_API", 0);
+       return (PySpam_API != NULL) ? 0 : -1;
+   }
+
+   #endif
+
+   #ifdef __cplusplus
+   }
+   #endif
+
+   #endif /* !defined(Py_SPAMMODULE_H) */
+```
+
+----------------------------------------
+
+TITLE: Making a Python Module Executable as a Script
+DESCRIPTION: Shows how to add a conditional block (`if __name__ == "__main__":`) to a Python module. This allows the module to be executed directly as a script (e.g., `python fibo.py <arguments>`) while preventing the code inside from running when the module is imported by another script.
+SOURCE: https://github.com/python/cpython/blob/main/Doc/tutorial/modules.rst#_snippet_8
+
+LANGUAGE: python
+CODE:
+```
+if __name__ == "__main__":
+    import sys
+    fib(int(sys.argv[1]))
+```
+
+----------------------------------------
+
+TITLE: Reloading Previously Imported Modules - Python
+DESCRIPTION: Reloads a previously imported module. The argument must be a module object that has been successfully imported. This is useful for re-executing a module's code, for example, after its source file has been modified.
+SOURCE: https://github.com/python/cpython/blob/main/Doc/library/importlib.rst#_snippet_3
+
+LANGUAGE: Python
+CODE:
+```
+reload(module)
+```
+
+----------------------------------------
+
+TITLE: List Current Scope Names with dir() Function
+DESCRIPTION: This example shows how `dir()` without arguments lists all names (variables, modules, functions) currently defined in the local scope. It helps in understanding the available identifiers in the current execution context.
+SOURCE: https://github.com/python/cpython/blob/main/Doc/tutorial/modules.rst#_snippet_19
+
+LANGUAGE: Python
+CODE:
+```
+>>> a = [1, 2, 3, 4, 5]
+>>> import fibo
+>>> fib = fibo.fib
+>>> dir()
+['__builtins__', '__name__', 'a', 'fib', 'fibo', 'sys']
+```
+
+----------------------------------------
+
+TITLE: Python `importlib.reload()` Function
+DESCRIPTION: A function from the `importlib` module used to re-import a previously imported module. This is useful for interactive development when changes are made to a module's source code and you want to apply them without restarting the interpreter.
+SOURCE: https://github.com/python/cpython/blob/main/Doc/tutorial/modules.rst#_snippet_14
+
+LANGUAGE: APIDOC
+CODE:
+```
+importlib.reload(module: ModuleType) -> ModuleType
+  module: The module object to be reloaded.
+  Returns: The reloaded module object.
+  Usage: import importlib; importlib.reload(my_module)
+```
