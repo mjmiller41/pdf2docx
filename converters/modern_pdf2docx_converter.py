@@ -348,9 +348,9 @@ class ModernPDF2DOCXConverter:
             section = self.docx_document.sections[0]
             
             # Get PDF page dimensions (use first page)
-            page_size = extracted_content['pages'][0]['page_size']
-            pdf_width = page_size['width']
-            pdf_height = page_size['height']
+            page_content = extracted_content['pages'][0]
+            pdf_width = page_content.page_size['width']
+            pdf_height = page_content.page_size['height']
             
             # Convert PDF points to inches (72 points = 1 inch)
             page_width_inches = pdf_width / 72
@@ -583,21 +583,29 @@ class ModernPDF2DOCXConverter:
             
             # Calculate appropriate size (fit within page margins)
             section = self.docx_document.sections[0]
-            max_width = section.page_width - section.left_margin - section.right_margin
-            max_height = section.page_height - section.top_margin - section.bottom_margin
+            
+            # Convert margins to inches first
+            max_width = section.page_width.inches - section.left_margin.inches - section.right_margin.inches
+            max_height = section.page_height.inches - section.top_margin.inches - section.bottom_margin.inches
             
             # Get original image dimensions
             original_width = image_data['width']
             original_height = image_data['height']
             
-            # Calculate scaling to fit within margins
-            max_width_inches = max_width.inches
-            max_height_inches = max_height.inches
+            # Use directly in inches
+            max_width_inches = max_width
+            max_height_inches = max_height
             
             # Convert pixels to inches (assuming 72 DPI)
             original_width_inches = original_width / 72
             original_height_inches = original_height / 72
             
+            # If dimensions are 0, use default values
+            if original_width_inches <= 0 or original_height_inches <= 0:
+                original_width_inches = 6.0  # Default width
+                original_height_inches = 8.0  # Default height
+            
+            # Calculate scaling to fit within margins
             width_scale = max_width_inches / original_width_inches
             height_scale = max_height_inches / original_height_inches
             scale = min(width_scale, height_scale, 1.0)  # Don't upscale

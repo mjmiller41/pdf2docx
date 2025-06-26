@@ -1,0 +1,3115 @@
+TITLE: Basic pypdf usage: Read PDF and extract text
+DESCRIPTION: Demonstrates how to open an existing PDF file, retrieve the total number of pages, access a specific page by index, and extract all text content from that page using the pypdf library.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/README.md#_snippet_2
+
+LANGUAGE: python
+CODE:
+```
+from pypdf import PdfReader
+
+reader = PdfReader("example.pdf")
+number_of_pages = len(reader.pages)
+page = reader.pages[0]
+text = page.extract_text()
+```
+
+----------------------------------------
+
+TITLE: Install pypdf using pip
+DESCRIPTION: Installs the pypdf library using the pip package manager. This is the most common installation method and requires Python 3.8+.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/docs/user/installation.md#_snippet_0
+
+LANGUAGE: bash
+CODE:
+```
+pip install pypdf
+```
+
+----------------------------------------
+
+TITLE: Extract all PDF attachments by name using pypdf
+DESCRIPTION: This snippet demonstrates how to iterate through all attachments in a PDF document using `pypdf.PdfReader` and save each attachment's content to a file. It handles cases where attachment names are not unique by appending an index to the filename.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/docs/user/extract-attachments.md#_snippet_0
+
+LANGUAGE: python
+CODE:
+```
+from pypdf import PdfReader
+
+reader = PdfReader("example.pdf")
+
+for name, content_list in reader.attachments.items():
+    for i, content in enumerate(content_list):
+        with open(f"{name}-{i}", "wb") as fp:
+            fp.write(content)
+```
+
+----------------------------------------
+
+TITLE: Encrypt PDF with pypdf using Python
+DESCRIPTION: This snippet demonstrates how to encrypt an existing PDF file using the pypdf library. It reads an input PDF, creates a new writer, applies a password with a specified AES-256 algorithm, and then saves the encrypted PDF to a new file. It is recommended to use AES-256-R5 for better security.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/docs/user/encryption-decryption.md#_snippet_0
+
+LANGUAGE: python
+CODE:
+```
+from pypdf import PdfReader, PdfWriter
+
+reader = PdfReader("example.pdf")
+writer = PdfWriter(clone_from=reader)
+
+# Add a password to the new PDF
+writer.encrypt("my-secret-password", algorithm="AES-256")
+
+# Save the new PDF to a file
+with open("encrypted-pdf.pdf", "wb") as f:
+    writer.write(f)
+```
+
+----------------------------------------
+
+TITLE: Extract Text from PDF Page with pypdf
+DESCRIPTION: Demonstrates various ways to extract text from a PDF page using `pypdf.PdfReader` and `page.extract_text()`. Examples include extracting all text, text oriented up, text with specific rotations, and text in layout mode with options for vertical spacing and rotated text.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/docs/user/extract-text.md#_snippet_0
+
+LANGUAGE: python
+CODE:
+```
+from pypdf import PdfReader
+
+reader = PdfReader("example.pdf")
+page = reader.pages[0]
+print(page.extract_text())
+
+# extract only text oriented up
+print(page.extract_text(0))
+
+# extract text oriented up and turned left
+print(page.extract_text((0, 90)))
+
+# extract text in a fixed width format that closely adheres to the rendered
+# layout in the source pdf
+print(page.extract_text(extraction_mode="layout"))
+
+# extract text preserving horizontal positioning without excess vertical
+# whitespace (removes blank and "whitespace only" lines)
+print(page.extract_text(extraction_mode="layout", layout_mode_space_vertically=False))
+
+# adjust horizontal spacing
+print(page.extract_text(extraction_mode="layout", layout_mode_scale_weight=1.0))
+
+# exclude (default) or include (as shown below) text rotated w.r.t. the page
+print(page.extract_text(extraction_mode="layout", layout_mode_strip_rotated=False))
+```
+
+----------------------------------------
+
+TITLE: Decrypt PDF with pypdf using Python
+DESCRIPTION: This snippet illustrates how to decrypt an encrypted PDF file using the pypdf library. It reads the encrypted PDF, checks if it's encrypted, and then decrypts it using the correct password. Finally, it saves the decrypted content to a new PDF file.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/docs/user/encryption-decryption.md#_snippet_1
+
+LANGUAGE: python
+CODE:
+```
+from pypdf import PdfReader, PdfWriter
+
+reader = PdfReader("encrypted-pdf.pdf")
+
+if reader.is_encrypted:
+    reader.decrypt("my-secret-password")
+
+writer = PdfWriter(clone_from=reader)
+
+# Save the new PDF to a file
+with open("decrypted-pdf.pdf", "wb") as f:
+    writer.write(f)
+```
+
+----------------------------------------
+
+TITLE: Install pypdf via pip
+DESCRIPTION: Install the pypdf library using pip, the Python package installer. This is the standard way to get pypdf.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/README.md#_snippet_0
+
+LANGUAGE: bash
+CODE:
+```
+pip install pypdf
+```
+
+----------------------------------------
+
+TITLE: Merge multiple PDF files sequentially using pypdf
+DESCRIPTION: Demonstrates the simplest way to combine several PDF files into a single output document by appending each file sequentially using `pypdf.PdfWriter`.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/docs/user/merging-pdfs.md#_snippet_0
+
+LANGUAGE: python
+CODE:
+```
+from pypdf import PdfWriter
+
+merger = PdfWriter()
+
+for pdf in ["file1.pdf", "file2.pdf", "file3.pdf"]:
+    merger.append(pdf)
+
+merger.write("merged-pdf.pdf")
+merger.close()
+```
+
+----------------------------------------
+
+TITLE: Write New Metadata to PDF with pypdf
+DESCRIPTION: This snippet illustrates how to create a new PDF with custom metadata using `PdfWriter`. It copies pages from an existing PDF, optionally preserves old metadata, and then adds new metadata fields such as author, producer, title, subject, keywords, creation date, modification date, and a custom field. It also shows how to format the current date for metadata.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/docs/user/metadata.md#_snippet_1
+
+LANGUAGE: python
+CODE:
+```
+from datetime import datetime
+from pypdf import PdfReader, PdfWriter
+
+reader = PdfReader("example.pdf")
+writer = PdfWriter()
+
+# Add all pages to the writer
+for page in reader.pages:
+    writer.add_page(page)
+
+# If you want to add the old metadata, include these two lines
+if reader.metadata is not None:
+    writer.add_metadata(reader.metadata)
+
+# Format the current date and time for the metadata
+utc_time = "-05'00'"  # UTC time optional
+time = datetime.now().strftime(f"D\072%Y%m%d%H%M%S{utc_time}")
+
+# Add the new metadata
+writer.add_metadata(
+    {
+        "/Author": "Martin",
+        "/Producer": "Libre Writer",
+        "/Title": "Title",
+        "/Subject": "Subject",
+        "/Keywords": "Keywords",
+        "/CreationDate": time,
+        "/ModDate": time,
+        "/Creator": "Creator",
+        "/CustomField": "CustomField",
+    }
+)
+
+# Save the new PDF to a file
+with open("meta-pdf.pdf", "wb") as f:
+    writer.write(f)
+```
+
+----------------------------------------
+
+TITLE: Handle pypdf Exceptions with a Fallback
+DESCRIPTION: This snippet demonstrates how to gracefully handle exceptions that might occur when processing PDF files with pypdf. It attempts to extract text and, if a pypdf-related exception occurs, falls back to an alternative text extraction method like pdfminer.six. Users can also catch 'pypdf.errors.PyPdfError' for more specific error handling.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/docs/user/suppress-warnings.md#_snippet_0
+
+LANGUAGE: python
+CODE:
+```
+from pypdf import PdfReader
+from pdfminer.high_level import extract_text as fallback_text_extraction
+
+text = ""
+try:
+    reader = PdfReader("example.pdf")
+    for page in reader.pages:
+        text += page.extract_text()
+except Exception as exc:
+    text = fallback_text_extraction("example.pdf")
+```
+
+----------------------------------------
+
+TITLE: Simple PDF Stamping/Watermarking with merge_page
+DESCRIPTION: This snippet demonstrates how to add a stamp (overlay) or watermark (underlay) to all pages of a PDF using `pypdf.PdfReader` and `pypdf.PdfWriter`. The `merge_page` method is used, with the `over` parameter controlling whether the stamp is placed on top (`True`) or in the background (`False`).
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/docs/user/add-watermark.md#_snippet_0
+
+LANGUAGE: python
+CODE:
+```
+from pypdf import PdfReader, PdfWriter
+
+stamp = PdfReader("bg.pdf").pages[0]
+writer = PdfWriter(clone_from="source.pdf")
+for page in writer.pages:
+    page.merge_page(stamp, over=False)  # here set to False for watermarking
+
+writer.write("out.pdf")
+```
+
+----------------------------------------
+
+TITLE: Fill Out PDF Forms with pypdf
+DESCRIPTION: This snippet illustrates how to programmatically fill out form fields in a PDF document using the pypdf library. It covers reading an existing PDF, updating specific form field values, and saving the modified PDF to a new file. It also highlights the importance of setting `auto_regenerate=False` to prevent unwanted recomputations.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/docs/user/forms.md#_snippet_1
+
+LANGUAGE: python
+CODE:
+```
+from pypdf import PdfReader, PdfWriter
+
+reader = PdfReader("form.pdf")
+writer = PdfWriter()
+
+page = reader.pages[0]
+fields = reader.get_fields()
+
+writer.append(reader)
+
+writer.update_page_form_field_values(
+    writer.pages[0],
+    {"fieldname": "some filled in text"},
+    auto_regenerate=False,
+)
+
+with open("filled-out.pdf", "wb") as output_stream:
+    writer.write(output_stream)
+```
+
+----------------------------------------
+
+TITLE: Read and Write PDF Data to In-Memory Byte Streams with pypdf
+DESCRIPTION: Demonstrates how to read from and write to BytesIO objects using pypdf. This is useful for processing PDFs in memory without saving them to disk, suitable for database or cloud storage operations. It shows preparing an example stream, reading with PdfReader, and writing with PdfWriter.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/docs/user/streaming-data.md#_snippet_0
+
+LANGUAGE: python
+CODE:
+```
+from io import BytesIO
+
+# Prepare example
+with open("example.pdf", "rb") as fh:
+    bytes_stream = BytesIO(fh.read())
+
+# Read from bytes_stream
+reader = PdfReader(bytes_stream)
+
+# Write to bytes_stream
+writer = PdfWriter()
+with BytesIO() as bytes_stream:
+    writer.write(bytes_stream)
+```
+
+----------------------------------------
+
+TITLE: Extracting Form Fields with PdfReader.get_fields()
+DESCRIPTION: This Python snippet demonstrates the primary method for extracting form fields from a PDF using `pypdf.PdfReader.get_fields()`. This method returns a list of `Field` objects, which are generally more ergonomic for accessing field-specific data through named properties. It's suitable for most use cases where high-level field information is needed.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/docs/user/forms.md#_snippet_2
+
+LANGUAGE: Python
+CODE:
+```
+from pypdf import PdfReader
+
+reader = PdfReader("form.pdf")
+fields = reader.get_fields()
+```
+
+----------------------------------------
+
+TITLE: Crop, Rotate, and Add PDF Pages with pypdf
+DESCRIPTION: Demonstrates how to read an existing PDF, add its pages to a new document, apply a 90-degree rotation to one page, and crop another page to half its size before writing the output.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/docs/user/cropping-and-transforming.md#_snippet_0
+
+LANGUAGE: python
+CODE:
+```
+from pypdf import PdfReader, PdfWriter
+
+reader = PdfReader("example.pdf")
+writer = PdfWriter()
+
+# Add page 1 from reader to output document, unchanged.
+writer.add_page(reader.pages[0])
+
+# Add page 2 from reader, but rotated clockwise 90 degrees.
+writer.add_page(reader.pages[1].rotate(90))
+
+# Add page 3 from reader, but crop it to half size.
+page3 = reader.pages[2]
+page3.mediabox.upper_right = (
+    page3.mediabox.right / 2,
+    page3.mediabox.top / 2,
+)
+writer.add_page(page3)
+
+# Write to pypdf-output.pdf.
+with open("pypdf-output.pdf", "wb") as fp:
+    writer.write(fp)
+```
+
+----------------------------------------
+
+TITLE: Rotate a PDF Page Clockwise with pypdf
+DESCRIPTION: Illustrates how to rotate the first page of a PDF document by 90 degrees clockwise using the `rotate` method of `pypdf.PageObject` and save the modified PDF.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/docs/user/cropping-and-transforming.md#_snippet_1
+
+LANGUAGE: python
+CODE:
+```
+from pypdf import PdfReader, PdfWriter
+
+reader = PdfReader("input.pdf")
+writer = PdfWriter()
+
+writer.add_page(reader.pages[0])
+writer.pages[0].rotate(90)
+
+with open("output.pdf", "wb") as fp:
+    writer.write(fp)
+```
+
+----------------------------------------
+
+TITLE: Update Existing PDF Metadata with pypdf
+DESCRIPTION: This snippet demonstrates various ways to update metadata in an existing PDF using `PdfWriter`. It shows how to change specific metadata values, clear all metadata entries while keeping the `/Info` entry, and completely replace all metadata entries with a new set. The changes are then saved to a new PDF file.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/docs/user/metadata.md#_snippet_2
+
+LANGUAGE: python
+CODE:
+```
+from pypdf import PdfWriter
+
+writer = PdfWriter(clone_from="example.pdf")
+
+# Change some values
+writer.add_metadata(
+    {
+        "/Author": "Martin",
+        "/Producer": "Libre Writer",
+        "/Title": "Title",
+    }
+)
+
+# Clear all data but keep the entry in PDF
+writer.metadata = {}
+
+# Replace all entries with new set of entries
+writer.metadata = {
+    "/Author": "Martin",
+    "/Producer": "Libre Writer",
+}
+
+# Save the new PDF to a file
+with open("meta-pdf.pdf", "wb") as f:
+    writer.write(f)
+```
+
+----------------------------------------
+
+TITLE: Append specific page ranges or indices from a PDF in pypdf
+DESCRIPTION: Shows how to use `PdfWriter.append` to add a specific range of pages (e.g., first 10) or a list of non-contiguous page indices (e.g., page 1 and 10) from a source PDF or `PdfReader`.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/docs/user/merging-pdfs.md#_snippet_2
+
+LANGUAGE: python
+CODE:
+```
+# Append the first 10 pages of source.pdf
+writer.append("source.pdf", (0, 10))
+
+# Append the first and 10th page from reader and create an outline
+writer.append(reader, "page 1 and 10", [0, 9])
+```
+
+----------------------------------------
+
+TITLE: pypdf.PdfWriter.append method documentation
+DESCRIPTION: Details the `append` method of `PdfWriter`, used to add pages from a source PDF (file path, file object, or `PdfReader`) to the output. Supports appending specific page ranges and handles named destinations. Recommends `merge` for mid-document insertions.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/docs/user/merging-pdfs.md#_snippet_7
+
+LANGUAGE: APIDOC
+CODE:
+```
+pypdf.PdfWriter.append(source, pages=None, outline_title=None)
+  Description: Appends pages from a source PDF to the PdfWriter's output.
+  Parameters:
+    source: Path to PDF file, file-like object, or PdfReader instance.
+    pages: Optional. Tuple (start_page, end_page) for range, or list of page indices.
+    outline_title: Optional. Title for outline entry.
+  Behavior:
+    - Extends PdfWriter functionality.
+    - Imports relevant named destinations.
+    - For inserting in the middle, use 'merge'.
+    - Supports list-based syntax
+```
+
+----------------------------------------
+
+TITLE: Incorrect Multi-Copy Page Transformation with pypdf (Cumulative Transformations)
+DESCRIPTION: This example demonstrates an attempt to copy and transform a source page multiple times onto a destination page using `merge_page` and `add_transformation`. The issue arises because `add_transformation` applies cumulatively to the source page, causing subsequent merges to be based on an increasingly transformed page, leading to incorrect positioning and content falling outside the destination page. It also includes a workaround for the mediabox.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/docs/user/cropping-and-transforming.md#_snippet_11
+
+LANGUAGE: python
+CODE:
+```
+from pypdf import PaperSize, PdfReader, PdfWriter, Transformation
+
+# Read source file
+reader = PdfReader("nup-source.pdf")
+sourcepage = reader.pages[0]
+
+# Create a destination file, and add a blank page to it
+writer = PdfWriter()
+destpage = writer.add_blank_page(width=PaperSize.A4.height, height=PaperSize.A4.width)
+
+# Extend source page mediabox
+sourcepage.mediabox = destpage.mediabox
+
+# Copy source page to destination page, several times
+for x in range(4):
+    for y in range(4):
+        # Translate page
+        sourcepage.add_transformation(
+            Transformation().translate(
+                x * PaperSize.A8.height,
+                y * PaperSize.A8.width,
+            )
+        )
+        # Merge translated page
+        destpage.merge_page(sourcepage)
+
+# Write file
+with open("nup-dest1.pdf", "wb") as fp:
+    writer.write(fp)
+```
+
+----------------------------------------
+
+TITLE: Advanced PDF merging with page ranges and insertion positions in pypdf
+DESCRIPTION: Illustrates more granular control over PDF merging, including appending specific page ranges from multiple inputs, inserting pages at a designated position within the output, and appending entire documents.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/docs/user/merging-pdfs.md#_snippet_1
+
+LANGUAGE: python
+CODE:
+```
+from pypdf import PdfWriter
+
+merger = PdfWriter()
+
+input1 = open("document1.pdf", "rb")
+input2 = open("document2.pdf", "rb")
+input3 = open("document3.pdf", "rb")
+
+# Add the first 3 pages of input1 document to output
+merger.append(fileobj=input1, pages=(0, 3))
+
+# Insert the first page of input2 into the output beginning after the second page
+merger.merge(position=2, fileobj=input2, pages=(0, 1))
+
+# Append entire input3 document to the end of the output document
+merger.append(input3)
+
+# Write to an output PDF document
+output = open("document-output.pdf", "wb")
+merger.write(output)
+
+# Close file descriptors
+merger.close()
+output.close()
+```
+
+----------------------------------------
+
+TITLE: Insert Blank Page with pypdf PaperSize
+DESCRIPTION: This Python snippet illustrates how to insert a new blank page at a specific position within an existing PDF document using the `pypdf.PaperSize` class. It initializes a `PdfWriter`, inserts a blank page with A8 dimensions at index 1, and then saves the updated PDF to an output file.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/docs/modules/PaperSize.rst#_snippet_1
+
+LANGUAGE: python
+CODE:
+```
+from pypdf import PaperSize, PdfWriter
+
+writer = PdfWriter(clone_from="sample.pdf")
+writer.insert_blank_page(PaperSize.A8.width, PaperSize.A8.height, 1)
+with open("output.pdf", "wb") as output_stream:
+    writer.write(output_stream)
+```
+
+----------------------------------------
+
+TITLE: Reduce PDF Image Quality with pypdf
+DESCRIPTION: This code shows how to iterate through each page and its images in a PDF to reduce their quality. By replacing images with a lower quality version (e.g., 80%), the overall file size can sometimes be reduced, depending on the original image compression and content.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/docs/user/file-size.md#_snippet_2
+
+LANGUAGE: python
+CODE:
+```
+from pypdf import PdfWriter
+
+writer = PdfWriter(clone_from="example.pdf")
+
+for page in writer.pages:
+    for img in page.images:
+        img.replace(img.image, quality=80)
+
+with open("out.pdf", "wb") as f:
+    writer.write(f)
+```
+
+----------------------------------------
+
+TITLE: Add Polygon Annotation to PDF with pypdf
+DESCRIPTION: Demonstrates how to add a polygon shape annotation to a PDF page using pypdf.annotations.Polygon. It involves reading an existing PDF, creating a Polygon annotation with specified vertices, adding it to a page, and writing the modified PDF to a new file.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/docs/user/adding-pdf-annotations.md#_snippet_6
+
+LANGUAGE: python
+CODE:
+```
+from pypdf import PdfReader, PdfWriter
+from pypdf.annotations import Polygon
+
+pdf_path = os.path.join(RESOURCE_ROOT, "crazyones.pdf")
+reader = PdfReader(pdf_path)
+page = reader.pages[0]
+writer = PdfWriter()
+writer.add_page(page)
+
+# Add the line
+annotation = Polygon(
+    vertices=[(50, 550), (200, 650), (70, 750), (50, 700)],
+)
+writer.add_annotation(page_number=0, annotation=annotation)
+
+# Write the annotated file to disk
+with open("annotated-pdf.pdf", "wb") as fp:
+    writer.write(fp)
+```
+
+----------------------------------------
+
+TITLE: Transfer page rotation to content before merging in pypdf
+DESCRIPTION: Provides an example of how to ensure correctly oriented pages when merging rotated PDFs. It demonstrates iterating through pages and calling `PageObject.transfer_rotation_to_content()` if a page has a non-zero rotation, before merging.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/docs/user/merging-pdfs.md#_snippet_6
+
+LANGUAGE: python
+CODE:
+```
+for page in writer.pages:
+    if page.rotation != 0:
+        page.transfer_rotation_to_content()
+    page.merge_page(background, over=False)
+```
+
+----------------------------------------
+
+TITLE: Extract PDF Text Excluding Header and Footer with pypdf Visitor
+DESCRIPTION: Illustrates how to use a custom `visitor_text` function with `pypdf.PageObject.extract_text` to selectively extract text from a PDF page. This example filters text based on its vertical position (y-coordinate) to exclude content typically found in headers and footers.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/docs/user/extract-text.md#_snippet_2
+
+LANGUAGE: python
+CODE:
+```
+from pypdf import PdfReader
+
+reader = PdfReader("GeoBase_NHNC1_Data_Model_UML_EN.pdf")
+page = reader.pages[3]
+
+parts = []
+
+def visitor_body(text, cm, tm, font_dict, font_size):
+    y = cm[5]
+    if 50 < y < 720:
+        parts.append(text)
+
+
+page.extract_text(visitor_text=visitor_body)
+text_body = "".join(parts)
+
+print(text_body)
+```
+
+----------------------------------------
+
+TITLE: Encrypt and Write PDF Directly to AWS S3 with pypdf
+DESCRIPTION: Illustrates how to manipulate a PDF (e.g., add a password) and then write it directly to an AWS S3 bucket using boto3 and pypdf, bypassing local file storage. It assumes raw_bytes_data contains the original PDF bytes and demonstrates adding pages, encrypting, and uploading via s3.write_get_object_response.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/docs/user/streaming-data.md#_snippet_1
+
+LANGUAGE: python
+CODE:
+```
+from io import BytesIO
+
+import boto3
+from pypdf import PdfReader, PdfWriter
+
+
+reader = PdfReader(BytesIO(raw_bytes_data))
+writer = PdfWriter()
+
+# Add all pages to the writer
+for page in reader.pages:
+    writer.add_page(page)
+
+# Add a password to the new PDF
+writer.encrypt("my-secret-password")
+
+# Save the new PDF to a file
+with BytesIO() as bytes_stream:
+    writer.write(bytes_stream)
+    bytes_stream.seek(0)
+    s3 = boto3.client("s3")
+    s3.write_get_object_response(
+        Body=bytes_stream, RequestRoute=request_route, RequestToken=request_token
+    )
+```
+
+----------------------------------------
+
+TITLE: pypdf.PdfWriter Class API Reference
+DESCRIPTION: Provides detailed API documentation for the `pypdf.PdfWriter` class, including all its public, inherited, and undocumented members, along with its full inheritance hierarchy.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/docs/modules/PdfWriter.rst#_snippet_0
+
+LANGUAGE: APIDOC
+CODE:
+```
+Class: pypdf.PdfWriter
+  Members: All public members
+  Inherited Members: All inherited members
+  Undocumented Members: All undocumented members
+  Inheritance Hierarchy: Shown
+```
+
+----------------------------------------
+
+TITLE: pypdf.generic.Field Class API Reference
+DESCRIPTION: This entry documents the pypdf.generic.Field class. It includes all public members and shows the class's inheritance structure, as specified by the Sphinx 'autoclass' directive with ':members:', ':undoc-members:', and ':show-inheritance:' options.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/docs/modules/Field.rst#_snippet_0
+
+LANGUAGE: APIDOC
+CODE:
+```
+Class: pypdf.generic.Field
+  Description: Represents a field within a PDF document, handling its properties and interactions.
+  Members: All public and undocumented members are included.
+  Inheritance: The full inheritance hierarchy is displayed.
+```
+
+----------------------------------------
+
+TITLE: Add PolyLine Annotation to PDF using pypdf
+DESCRIPTION: Explains how to add a multi-segment line (polyline) annotation to a PDF page by defining a series of vertices. It also demonstrates how to set an explicit color for the polyline, as they are transparent by default, using `ArrayObject` and `FloatObject` for RGB color definition.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/docs/user/adding-pdf-annotations.md#_snippet_3
+
+LANGUAGE: python
+CODE:
+```
+from pypdf import PdfReader, PdfWriter
+from pypdf.annotations import PolyLine
+from pypdf.generic import ArrayObject, FloatObject, NameObject
+
+pdf_path = os.path.join(RESOURCE_ROOT, "crazyones.pdf")
+reader = PdfReader(pdf_path)
+page = reader.pages[0]
+writer = PdfWriter()
+writer.add_page(page)
+
+# Add the polyline
+# By default, the line will be transparent. Set an explicit color.
+annotation = PolyLine(
+    vertices=[(50, 550), (200, 650), (70, 750), (50, 700)],
+)
+annotation[NameObject("/C")] = ArrayObject(
+    [FloatObject(0.9), FloatObject(0.1), FloatObject(0)]
+)
+writer.add_annotation(page_number=0, annotation=annotation)
+
+# Write the annotated file to disk
+with open("annotated-pdf.pdf", "wb") as fp:
+    writer.write(fp)
+```
+
+----------------------------------------
+
+TITLE: Read PDF Directly from AWS S3 Bucket with pypdf
+DESCRIPTION: Shows how to read a PDF file directly from an AWS S3 bucket into pypdf using boto3. It retrieves the object's body as a byte stream and initializes PdfReader with it, avoiding local file downloads.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/docs/user/streaming-data.md#_snippet_2
+
+LANGUAGE: python
+CODE:
+```
+from io import BytesIO
+
+import boto3
+from pypdf import PdfReader
+
+
+s3 = boto3.client("s3")
+obj = s3.get_object(Body=csv_buffer.getvalue(), Bucket="my-bucket", Key="my/doc.pdf")
+reader = PdfReader(BytesIO(obj["Body"].read()))
+```
+
+----------------------------------------
+
+TITLE: Launch print window on opening PDF with pypdf
+DESCRIPTION: This Python snippet demonstrates how to add JavaScript to a PDF using the pypdf library. It clones an existing PDF, injects a JavaScript command to automatically open the print dialog when the document is viewed, and then saves the modified PDF to a new file.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/docs/user/add-javascript.md#_snippet_0
+
+LANGUAGE: python
+CODE:
+```
+from pypdf import PdfWriter
+
+writer = PdfWriter(clone_from="example.pdf")
+
+# Add JavaScript to launch the print window on opening this PDF.
+writer.add_js("this.print({bUI:true,bSilent:false,bShrinkToFit:true});")
+
+# Write to pypdf-output.pdf.
+with open("pypdf-output.pdf", "wb") as fp:
+    writer.write(fp)
+```
+
+----------------------------------------
+
+TITLE: pypdf.PdfWriter.compress_identical_objects API
+DESCRIPTION: API documentation for the `compress_identical_objects` method of `PdfWriter`. This method helps reduce file size by merging identical objects and suppressing unused (orphan) objects within the PDF. It is recommended to call this method just before writing the PDF to a file or stream.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/docs/user/file-size.md#_snippet_0
+
+LANGUAGE: APIDOC
+CODE:
+```
+PdfWriter.compress_identical_objects(remove_identicals: bool = True, remove_orphans: bool = True)
+  remove_identicals: Enables/disables compression merging identical objects.
+  remove_orphans: Enables/disables suppression of unused objects.
+```
+
+----------------------------------------
+
+TITLE: Read PDF Directly from Google Cloud Storage with pypdf
+DESCRIPTION: Demonstrates how to read a PDF file directly from Google Cloud Storage into pypdf. It uses the google.cloud.storage client to download the blob content into a BytesIO object, which is then passed to PdfReader. Requires GOOGLE_APPLICATION_CREDENTIALS environment variable to be set.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/docs/user/streaming-data.md#_snippet_3
+
+LANGUAGE: python
+CODE:
+```
+from io import BytesIO
+
+from google.cloud import storage
+
+# os.environ["GOOGLE_APPLICATION_CREDENTIALS"] must be set
+storage_client = storage.Client()
+blob = storage_client.bucket("my-bucket").blob("mydoc.pdf")
+file_stream = BytesIO()
+blob.download_to_file(file_stream)
+reader = PdfReader(file_stream)
+```
+
+----------------------------------------
+
+TITLE: Read PDF Metadata with pypdf
+DESCRIPTION: This snippet demonstrates how to read metadata from an existing PDF file using the `PdfReader` class. It shows how to access various metadata fields like title, author, subject, creator, producer, creation date, and modification date, noting that any of these fields might be `None` if not present in the PDF.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/docs/user/metadata.md#_snippet_0
+
+LANGUAGE: python
+CODE:
+```
+from pypdf import PdfReader
+
+reader = PdfReader("example.pdf")
+
+meta = reader.metadata
+
+# All of the following could be None!
+print(meta.title)
+print(meta.author)
+print(meta.subject)
+print(meta.creator)
+print(meta.producer)
+print(meta.creation_date)
+print(meta.modification_date)
+```
+
+----------------------------------------
+
+TITLE: Read PDF Form Fields with pypdf
+DESCRIPTION: This snippet demonstrates how to extract form field data from a PDF document using the pypdf library. It shows how to retrieve specific text fields and how to get all available fields from the PDF.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/docs/user/forms.md#_snippet_0
+
+LANGUAGE: python
+CODE:
+```
+from pypdf import PdfReader
+
+reader = PdfReader("form.pdf")
+fields = reader.get_form_text_fields()
+fields == {"key": "value", "key2": "value2"}
+
+# You can also get all fields:
+fields = reader.get_fields()
+```
+
+----------------------------------------
+
+TITLE: Advanced PDF Stamping/Watermarking with Transformation
+DESCRIPTION: This Python function `stamp` allows for more advanced stamping or watermarking by applying transformations (like scaling, rotation, translation) to the stamp page before merging. It uses `pypdf.Transformation` and `merge_transformed_page` to apply the stamp to specified or all pages of a content PDF.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/docs/user/add-watermark.md#_snippet_1
+
+LANGUAGE: python
+CODE:
+```
+from pathlib import Path
+from typing import List, Union
+
+from pypdf import PdfReader, PdfWriter, Transformation
+
+
+def stamp(
+    content_pdf: Union[Path, str],
+    stamp_pdf: Union[Path, str],
+    pdf_result: Union[Path, str],
+    page_indices: Union[None, List[int]] = None,
+):
+    stamp_page = PdfReader(stamp_pdf).pages[0]
+
+    writer = PdfWriter()
+    # page_indices can be a List(array) of page, tuples are for range definition
+    reader = PdfReader(content_pdf)
+    writer.append(reader, pages=page_indices)
+
+    for content_page in writer.pages:
+        content_page.merge_transformed_page(
+            stamp_page,
+            Transformation().scale(0.5),
+        )
+
+    writer.write(pdf_result)
+
+
+stamp("example.pdf", "stamp.pdf", "out.pdf")
+```
+
+----------------------------------------
+
+TITLE: Merge PDF Pages with Rotation and Translation in pypdf
+DESCRIPTION: Illustrates applying both rotation and translation transformations to content before merging it onto a PDF page, demonstrating precise positioning.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/docs/user/cropping-and-transforming.md#_snippet_5
+
+LANGUAGE: python
+CODE:
+```
+op = Transformation().rotate(45).translate(tx=50)
+```
+
+----------------------------------------
+
+TITLE: Add Highlight Text Markup Annotation (pypdf)
+DESCRIPTION: Introduces a new method to `AnnotationBuilder` for creating highlight text markup annotations. This enhances the library's capability to programmatically add visual emphasis to text within PDF documents, improving document readability and review processes.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/CHANGELOG.md#_snippet_0
+
+LANGUAGE: APIDOC
+CODE:
+```
+AnnotationBuilder.highlight: Add support for text markup annotation.
+```
+
+----------------------------------------
+
+TITLE: Add Popup Annotation (pypdf)
+DESCRIPTION: Adds support for creating popup annotations via `AnnotationBuilder`. This allows associating a pop-up window with other annotations, providing additional information or comments when the annotation is activated.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/CHANGELOG.md#_snippet_1
+
+LANGUAGE: APIDOC
+CODE:
+```
+AnnotationBuilder.popup: Add support for popup annotations.
+```
+
+----------------------------------------
+
+TITLE: Remove Objects from PDF Page (pypdf)
+DESCRIPTION: Introduces `PdfWriter.remove_objects_from_page` method, allowing specific types of objects to be removed from a given `PageObject`. This provides fine-grained control over page content, useful for redaction or cleanup.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/CHANGELOG.md#_snippet_8
+
+LANGUAGE: APIDOC
+CODE:
+```
+PdfWriter.remove_objects_from_page(page: PageObject, to_delete: ObjectDeletionFlag): Remove specified object types from a page.
+```
+
+----------------------------------------
+
+TITLE: Extract Images from PDF Pages (pypdf)
+DESCRIPTION: This Python code demonstrates how to iterate through all image objects found on a specific page of a PDF document and save each image's data to a separate file. It uses `pypdf.PdfReader` to access page content and `image_file_object.data` to retrieve image bytes. Optional dependencies are required for this functionality.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/docs/user/extract-images.md#_snippet_0
+
+LANGUAGE: python
+CODE:
+```
+from pypdf import PdfReader
+
+reader = PdfReader("example.pdf")
+
+page = reader.pages[0]
+
+for count, image_file_object in enumerate(page.images):
+    with open(str(count) + image_file_object.name, "wb") as fp:
+        fp.write(image_file_object.data)
+```
+
+----------------------------------------
+
+TITLE: Add Free Text Annotation to PDF using pypdf
+DESCRIPTION: Illustrates how to add a customizable free text box annotation to a PDF page. This example covers setting text content, position, font, size, bold/italic styles, and various colors (font, border, background). It also shows how to set annotation flags for printability.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/docs/user/adding-pdf-annotations.md#_snippet_1
+
+LANGUAGE: python
+CODE:
+```
+from pypdf import PdfReader, PdfWriter
+from pypdf.annotations import FreeText
+
+# Fill the writer with the pages you want
+pdf_path = os.path.join(RESOURCE_ROOT, "crazyones.pdf")
+reader = PdfReader(pdf_path)
+page = reader.pages[0]
+writer = PdfWriter()
+writer.add_page(page)
+
+# Create the annotation and add it
+annotation = FreeText(
+    text="Hello World\nThis is the second line!",
+    rect=(50, 550, 200, 650),
+    font="Arial",
+    bold=True,
+    italic=True,
+    font_size="20pt",
+    font_color="00ff00",
+    border_color="0000ff",
+    background_color="cdcdcd",
+)
+
+# Set annotation flags to 4 for printable annotations.
+# See "AnnotationFlag" for other options, e.g. hidden etc.
+annotation.flags = 4
+
+writer.add_annotation(page_number=0, annotation=annotation)
+
+# Write the annotated file to disk
+with open("annotated-pdf.pdf", "wb") as fp:
+    writer.write(fp)
+```
+
+----------------------------------------
+
+TITLE: Remove Headers and Footers from Extracted Texts
+DESCRIPTION: This Python function attempts to remove page labels from the beginning or end of extracted text segments, which often appear as headers or footers. It iterates through a list of extracted texts and corresponding page labels, checking if the text starts or ends with its respective label and trimming it if so. The description also highlights several drawbacks and false-positive/negative scenarios.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/docs/user/post-processing-in-text-extraction.md#_snippet_2
+
+LANGUAGE: python
+CODE:
+```
+def remove_footer(extracted_texts: list[str], page_labels: list[str]):
+    def remove_page_labels(extracted_texts, page_labels):
+        processed = []
+        for text, label in zip(extracted_texts, page_labels):
+            text_left = text.lstrip()
+            if text_left.startswith(label):
+                text = text_left[len(label) :]
+
+            text_right = text.rstrip()
+            if text_right.endswith(label):
+                text = text_right[: -len(label)]
+
+            processed.append(text)
+        return processed
+
+    extracted_texts = remove_page_labels(extracted_texts, page_labels)
+    return extracted_texts
+```
+
+----------------------------------------
+
+TITLE: Initialize PdfWriter from Existing Document (pypdf)
+DESCRIPTION: Introduces a `clone_from` parameter in the `PdfWriter` constructor. This allows initializing a new `PdfWriter` instance by cloning an existing PDF document, facilitating operations on a copy without modifying the original.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/CHANGELOG.md#_snippet_3
+
+LANGUAGE: APIDOC
+CODE:
+```
+PdfWriter.__init__(..., clone_from: PdfReader): Initialize PdfWriter by cloning an existing PDF document.
+```
+
+----------------------------------------
+
+TITLE: Apply Lossless Compression to PDF Content Streams with pypdf
+DESCRIPTION: This snippet demonstrates applying lossless zlib/deflate compression to the content streams of each page in a PDF using `page.compress_content_streams()`. This method can significantly reduce file size without altering the visual appearance of the PDF. Note that this operation can be CPU intensive.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/docs/user/file-size.md#_snippet_3
+
+LANGUAGE: python
+CODE:
+```
+from pypdf import PdfWriter
+
+writer = PdfWriter(clone_from="example.pdf")
+
+for page in writer.pages:
+    page.compress_content_streams()  # This is CPU intensive!
+
+with open("out.pdf", "wb") as f:
+    writer.write(f)
+```
+
+----------------------------------------
+
+TITLE: Control Page Merging Order with 'over' Parameter (pypdf)
+DESCRIPTION: Adds an 'over' parameter to `merge_transformed_page` and related functions. This parameter provides control over the layering of pages during merging, allowing new content to be placed either above or below existing content.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/CHANGELOG.md#_snippet_12
+
+LANGUAGE: APIDOC
+CODE:
+```
+merge_transformed_page(..., over: bool): Add 'over' parameter to control layering during page merging.
+```
+
+----------------------------------------
+
+TITLE: Add Blank Page with pypdf PaperSize
+DESCRIPTION: This Python snippet demonstrates how to add a new blank page to an existing PDF document using the `pypdf.PaperSize` class. It initializes a `PdfWriter` from a sample PDF, adds a blank page with A8 dimensions, and then writes the modified PDF to an output file.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/docs/modules/PaperSize.rst#_snippet_0
+
+LANGUAGE: python
+CODE:
+```
+from pypdf import PaperSize, PdfWriter
+
+writer = PdfWriter(clone_from="sample.pdf")
+writer.add_blank_page(PaperSize.A8.width, PaperSize.A8.height)
+with open("output.pdf", "wb") as output_stream:
+    writer.write(output_stream)
+```
+
+----------------------------------------
+
+TITLE: Converting Image to PDF for Stamping
+DESCRIPTION: This example demonstrates how to use Pillow to convert an image file (e.g., PNG) into a PDF format suitable for stamping or watermarking. The `image_to_pdf` function handles the conversion, and `stamp_img` then applies this converted image as a stamp to a target PDF, similar to the PDF-based stamping methods.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/docs/user/add-watermark.md#_snippet_2
+
+LANGUAGE: python
+CODE:
+```
+from io import BytesIO
+from pathlib import Path
+from typing import List, Union
+
+from PIL import Image
+from pypdf import PageRange, PdfReader, PdfWriter, Transformation
+
+
+def image_to_pdf(stamp_img: Union[Path, str]) -> PdfReader:
+    img = Image.open(stamp_img)
+    img_as_pdf = BytesIO()
+    img.save(img_as_pdf, "pdf")
+    return PdfReader(img_as_pdf)
+
+
+def stamp_img(
+    content_pdf: Union[Path, str],
+    stamp_img: Union[Path, str],
+    pdf_result: Union[Path, str],
+    page_indices: Union[PageRange, List[int], None] = None,
+):
+    # Convert the image to a PDF
+    stamp_pdf = image_to_pdf(stamp_img)
+
+    # Then use the same stamp code from above
+    stamp_page = stamp_pdf.pages[0]
+
+    writer = PdfWriter()
+
+    reader = PdfReader(content_pdf)
+    writer.append(reader, pages=page_indices)
+    for content_page in writer.pages:
+        content_page.merge_transformed_page(
+            stamp_page,
+            Transformation(),
+        )
+
+    with open(pdf_result, "wb") as fp:
+        writer.write(fp)
+
+
+stamp_img("example.pdf", "example.png", "out.pdf")
+```
+
+----------------------------------------
+
+TITLE: Read all PDF annotations
+DESCRIPTION: This code snippet demonstrates how to iterate through all pages of a PDF document and access any associated annotations. For each annotation, it extracts and prints its subtype and rectangular location using the pypdf library.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/docs/user/reading-pdf-annotations.md#_snippet_0
+
+LANGUAGE: python
+CODE:
+```
+from pypdf import PdfReader
+
+reader = PdfReader("annotated.pdf")
+
+for page in reader.pages:
+    if "/Annots" in page:
+        for annotation in page["/Annots"]:
+            obj = annotation.get_object()
+            print({"subtype": obj["/Subtype"], "location": obj["/Rect"]})
+```
+
+----------------------------------------
+
+TITLE: Remove Images from PDF using pypdf
+DESCRIPTION: This snippet demonstrates how to remove all images from a PDF document using the `remove_images()` method of the `PdfWriter` object. This can significantly reduce the file size, especially for image-heavy PDFs. The modified PDF is then saved to a new file.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/docs/user/file-size.md#_snippet_1
+
+LANGUAGE: python
+CODE:
+```
+from pypdf import PdfWriter
+
+writer = PdfWriter(clone_from="example.pdf")
+
+writer.remove_images()
+
+with open("out.pdf", "wb") as f:
+    writer.write(f)
+```
+
+----------------------------------------
+
+TITLE: Add Text Highlight Annotation to PDF with pypdf
+DESCRIPTION: Explains how to add a text highlight annotation to a PDF document using pypdf.annotations.Highlight. This requires defining both a rect and quad_points to precisely specify the highlighted area, then adding the annotation to a page and saving the PDF.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/docs/user/adding-pdf-annotations.md#_snippet_10
+
+LANGUAGE: python
+CODE:
+```
+from pypdf import PdfReader, PdfWriter
+from pypdf.annotations import Highlight
+from pypdf.generic import ArrayObject, FloatObject
+
+pdf_path = os.path.join(RESOURCE_ROOT, "crazyones.pdf")
+reader = PdfReader(pdf_path)
+page = reader.pages[0]
+writer = PdfWriter()
+writer.add_page(page)
+
+rect = (50, 550, 200, 650)
+quad_points = [rect[0], rect[1], rect[2], rect[1], rect[0], rect[3], rect[2], rect[3]]
+
+# Add the highlight
+annotation = Highlight(
+    rect=rect,
+    quad_points=ArrayObject([FloatObject(quad_point) for quad_point in quad_points]),
+)
+writer.add_annotation(page_number=0, annotation=annotation)
+
+# Write the annotated file to disk
+with open("annotated-pdf.pdf", "wb") as fp:
+    writer.write(fp)
+```
+
+----------------------------------------
+
+TITLE: Merge PDF Pages with Rotation using pypdf
+DESCRIPTION: Demonstrates how to merge one PDF page onto another after applying a 45-degree clockwise rotation to the merged page's content using `pypdf.Transformation`.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/docs/user/cropping-and-transforming.md#_snippet_3
+
+LANGUAGE: python
+CODE:
+```
+from pypdf import PdfReader, PdfWriter, Transformation
+
+# Get the data
+reader_base = PdfReader("labeled-edges-center-image.pdf")
+page_base = reader_base.pages[0]
+
+reader = PdfReader("box.pdf")
+page_box = reader.pages[0]
+
+# Apply the transformation
+transformation = Transformation().rotate(45)
+page_box.add_transformation(transformation)
+page_base.merge_page(page_box)
+
+# Write the result back
+writer = PdfWriter()
+writer.add_page(page_base)
+with open("merged-foo.pdf", "wb") as fp:
+    writer.write(fp)
+```
+
+----------------------------------------
+
+TITLE: Remove PDF Metadata Entry with pypdf
+DESCRIPTION: This snippet shows how to completely remove the metadata (`/Info` entry) from a PDF file using `PdfWriter`. Setting `writer.metadata` to `None` effectively deletes the metadata dictionary. The modified PDF is then saved to a new file.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/docs/user/metadata.md#_snippet_3
+
+LANGUAGE: python
+CODE:
+```
+from pypdf import PdfWriter
+
+writer = PdfWriter("example.pdf")
+
+# Remove Metadata (/Info entry)
+writer.metadata = None
+
+# Save the new PDF to a file
+with open("meta-pdf.pdf", "wb") as f:
+    writer.write(f)
+```
+
+----------------------------------------
+
+TITLE: Scale PDF Page Content Only with pypdf
+DESCRIPTION: Shows how to scale only the visual content of a PDF page around its lower-left origin using `pypdf.Transformation`, without altering the page's physical dimensions.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/docs/user/cropping-and-transforming.md#_snippet_7
+
+LANGUAGE: python
+CODE:
+```
+from pypdf import PdfReader, PdfWriter, Transformation
+
+# Read the input
+reader = PdfReader("resources/side-by-side-subfig.pdf")
+page = reader.pages[0]
+
+# Scale
+op = Transformation().scale(sx=0.7, sy=0.7)
+page.add_transformation(op)
+
+# Write the result to a file
+writer = PdfWriter()
+writer.add_page(page)
+writer.write("out-pg-transform.pdf")
+```
+
+----------------------------------------
+
+TITLE: Page Transformation Method Addition
+DESCRIPTION: A new method, `add_transformation`, has been added to the `Page` object, allowing for direct application of transformation matrices to page content.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/CHANGELOG.md#_snippet_28
+
+LANGUAGE: APIDOC
+CODE:
+```
+Page:
+  add_transformation(transformation_matrix: list)
+```
+
+----------------------------------------
+
+TITLE: Correct Multi-Copy Page Transformation with pypdf (Non-Cumulative)
+DESCRIPTION: This snippet provides the correct method for copying and transforming a source page multiple times onto a destination page. By using `merge_transformed_page`, transformations are applied only once per merge operation, preventing cumulative effects on the source page. This approach simplifies the code, eliminates the need for mediabox hacks, and produces the expected layout.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/docs/user/cropping-and-transforming.md#_snippet_12
+
+LANGUAGE: python
+CODE:
+```
+from pypdf import PaperSize, PdfReader, PdfWriter, Transformation
+
+# Read source file
+reader = PdfReader("nup-source.pdf")
+sourcepage = reader.pages[0]
+
+# Create a destination file, and add a blank page to it
+writer = PdfWriter()
+destpage = writer.add_blank_page(width=PaperSize.A4.height, height=PaperSize.A4.width)
+
+# Copy source page to destination page, several times
+for x in range(4):
+    for y in range(4):
+        destpage.merge_transformed_page(
+            sourcepage,
+            Transformation().translate(
+                x * sourcepage.mediabox.width,
+                y * sourcepage.mediabox.height,
+            ),
+        )
+
+# Write file
+with open("nup-dest2.pdf", "wb") as fp:
+    writer.write(fp)
+```
+
+----------------------------------------
+
+TITLE: Merge PDF Pages with Rotation and Expansion in pypdf
+DESCRIPTION: Shows how to merge a rotated PDF page onto a base page, automatically expanding the base page's dimensions to fit the transformed content using the `expand=True` parameter.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/docs/user/cropping-and-transforming.md#_snippet_4
+
+LANGUAGE: python
+CODE:
+```
+transformation = Transformation().rotate(45)
+page_box.add_transformation(transformation)
+page_base.merge_page(page_box, expand=True)
+```
+
+----------------------------------------
+
+TITLE: Add Rectangle Annotation to PDF using pypdf
+DESCRIPTION: Demonstrates how to add a rectangular shape annotation to a PDF page by defining its bounding box using `pypdf.annotations.Rectangle`. It also notes the option to fill the rectangle with a specified interior color.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/docs/user/adding-pdf-annotations.md#_snippet_4
+
+LANGUAGE: python
+CODE:
+```
+from pypdf import PdfReader, PdfWriter
+from pypdf.annotations import Rectangle
+
+pdf_path = os.path.join(RESOURCE_ROOT, "crazyones.pdf")
+reader = PdfReader(pdf_path)
+page = reader.pages[0]
+writer = PdfWriter()
+writer.add_page(page)
+
+# Add the rectangle
+annotation = Rectangle(
+    rect=(50, 550, 200, 650),
+)
+writer.add_annotation(page_number=0, annotation=annotation)
+
+# Write the annotated file to disk
+with open("annotated-pdf.pdf", "wb") as fp:
+    writer.write(fp)
+```
+
+----------------------------------------
+
+TITLE: Read PDF text annotations
+DESCRIPTION: This example shows how to specifically filter for '/Text' annotations within a PDF. It iterates through pages and annotations, checks the subtype, and then prints the content of any found text annotations.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/docs/user/reading-pdf-annotations.md#_snippet_1
+
+LANGUAGE: python
+CODE:
+```
+from pypdf import PdfReader
+
+reader = PdfReader("example.pdf")
+
+for page in reader.pages:
+    if "/Annots" in page:
+        for annotation in page["/Annots"]:
+            subtype = annotation.get_object()["/Subtype"]
+            if subtype == "/Text":
+                print(annotation.get_object()["/Contents"])
+```
+
+----------------------------------------
+
+TITLE: Read PDF highlight annotations
+DESCRIPTION: This snippet demonstrates how to identify and extract data from '/Highlight' annotations in a PDF. It retrieves the quadrilateral coordinates ('/QuadPoints') associated with each highlight.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/docs/user/reading-pdf-annotations.md#_snippet_2
+
+LANGUAGE: python
+CODE:
+```
+from pypdf import PdfReader
+
+reader = PdfReader("example.pdf")
+
+for page in reader.pages:
+    if "/Annots" in page:
+        for annotation in page["/Annots"]:
+            subtype = annotation.get_object()["/Subtype"]
+            if subtype == "/Highlight":
+                coords = annotation.get_object()["/QuadPoints"]
+                x1, y1, x2, y2, x3, y3, x4, y4 = coords
+```
+
+----------------------------------------
+
+TITLE: Scale PDF Page and Content Proportionally with pypdf
+DESCRIPTION: Demonstrates how to scale both the content and the dimensions of a PDF page uniformly using `pypdf.PageObject.scale_by` to reduce its size.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/docs/user/cropping-and-transforming.md#_snippet_6
+
+LANGUAGE: python
+CODE:
+```
+from pypdf import PdfReader, PdfWriter
+
+# Read the input
+reader = PdfReader("resources/side-by-side-subfig.pdf")
+page = reader.pages[0]
+
+# Scale
+page.scale_by(0.5)
+
+# Write the result to a file
+writer = PdfWriter()
+writer.add_page(page)
+writer.write("out.pdf")
+```
+
+----------------------------------------
+
+TITLE: Read PDF file attachments
+DESCRIPTION: This code snippet illustrates how to extract embedded file attachments from PDF annotations. It identifies '/FileAttachment' annotations and retrieves the file name and its binary data, storing them in a dictionary.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/docs/user/reading-pdf-annotations.md#_snippet_3
+
+LANGUAGE: python
+CODE:
+```
+from pypdf import PdfReader
+
+reader = PdfReader("example.pdf")
+
+attachments = {}
+for page in reader.pages:
+    if "/Annots" in page:
+        for annotation in page["/Annots"]:
+            subtype = annotation.get_object()["/Subtype"]
+            if subtype == "/FileAttachment":
+                fileobj = annotation.get_object()["/FS"]
+                attachments[fileobj["/F"]] = fileobj["/EF"]["/F"].get_data()
+```
+
+----------------------------------------
+
+TITLE: Support Qualified Names in Form Field Updates (pypdf)
+DESCRIPTION: Enhances `update_page_form_field_values` to support qualified names for form fields. This improves flexibility when updating form fields, especially in complex PDF forms with nested field structures.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/CHANGELOG.md#_snippet_6
+
+LANGUAGE: APIDOC
+CODE:
+```
+update_page_form_field_values(..., qualified_names: bool): Support qualified names for form fields.
+```
+
+----------------------------------------
+
+TITLE: PdfReader Decryption Password Initialization
+DESCRIPTION: The `PdfReader` class now allows setting the decryption password directly during initialization, simplifying the process of opening encrypted PDF files.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/CHANGELOG.md#_snippet_27
+
+LANGUAGE: APIDOC
+CODE:
+```
+PdfReader:
+  __init__(..., password: str = None)
+```
+
+----------------------------------------
+
+TITLE: Extract Image from PDF Stamp Annotation (pypdf)
+DESCRIPTION: This Python code illustrates how to extract an image embedded within a stamp annotation. It navigates through the PDF object hierarchy, specifically accessing the annotation's appearance stream (`/AP`), normal appearance (`/N`), resources (`/Resources`), XObject dictionary (`/XObject`), and finally the image object (`/Im4`), then decodes it. This is useful for images not directly on the page.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/docs/user/extract-images.md#_snippet_1
+
+LANGUAGE: python
+CODE:
+```
+from pypdf import PdfReader
+
+reader = PdfReader("test_stamp.pdf")
+im = (
+    reader.pages[0]["/Annots"][0]
+    .get_object()["/AP"]["/N"]["/Resources"]["/XObject"]["/Im4"]
+    .decode_as_image()
+)
+
+im.show()
+```
+
+----------------------------------------
+
+TITLE: PdfFileWriter Document Cloning Methods
+DESCRIPTION: These methods, part of the PdfFileWriter class, enable the cloning of PDF documents or the appending of pages from existing PdfFileReader instances to a new writer. They facilitate the creation of new PDF files by reusing content from other PDFs.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/docs/meta/changelog-v1.md#_snippet_8
+
+LANGUAGE: APIDOC
+CODE:
+```
+PdfFileWriter:
+  appendPagesFromReader(reader: PdfFileReader)
+  cloneReaderDocumentRoot(reader: PdfFileReader)
+  cloneDocumentFromReader(reader: PdfFileReader)
+```
+
+----------------------------------------
+
+TITLE: Install pypdf with all optional dependencies
+DESCRIPTION: Installs pypdf along with all its optional dependencies, including those for cryptography and image formats, to enable full functionality.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/docs/user/installation.md#_snippet_2
+
+LANGUAGE: bash
+CODE:
+```
+pip install pypdf[full]
+```
+
+----------------------------------------
+
+TITLE: pypdf.PdfReader Class API Reference
+DESCRIPTION: Comprehensive API documentation for the `pypdf.PdfReader` class, detailing its methods, properties, inherited members, and undocumented members, as generated by Sphinx `autoclass` with full inheritance display.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/docs/modules/PdfReader.rst#_snippet_0
+
+LANGUAGE: APIDOC
+CODE:
+```
+class pypdf.PdfReader:
+  # This class provides an interface for reading PDF files.
+  # Documentation includes all public members, inherited members, and undocumented members.
+  # The inheritance hierarchy is also displayed.
+  #
+  # Directives used:
+  #   :members:
+  #   :inherited-members:
+  #   :undoc-members:
+  #   :show-inheritance:
+```
+
+----------------------------------------
+
+TITLE: Convert PDF Page to SVG with pypdf Visitors
+DESCRIPTION: Demonstrates using `visitor_operand_before` and `visitor_text` functions with `pypdf.PageObject.extract_text` to convert a PDF page's content (rectangles and text) into an SVG file. This helps visualize the page's structure and content stream.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/docs/user/extract-text.md#_snippet_3
+
+LANGUAGE: python
+CODE:
+```
+from pypdf import PdfReader
+import svgwrite
+
+reader = PdfReader("GeoBase_NHNC1_Data_Model_UML_EN.pdf")
+page = reader.pages[2]
+
+dwg = svgwrite.Drawing("GeoBase_test.svg", profile="tiny")
+
+
+def visitor_svg_rect(op, args, cm, tm):
+    if op == b"re":
+        (x, y, w, h) = (args[i].as_numeric() for i in range(4))
+        dwg.add(dwg.rect((x, y), (w, h), stroke="red", fill_opacity=0.05))
+
+
+def visitor_svg_text(text, cm, tm, font_dict, font_size):
+    (x, y) = (cm[4], cm[5])
+    dwg.add(dwg.text(text, insert=(x, y), fill="blue"))
+
+
+page.extract_text(
+    visitor_operand_before=visitor_svg_rect, visitor_text=visitor_svg_text
+)
+dwg.save()
+```
+
+----------------------------------------
+
+TITLE: Install pypdf with AES encryption/decryption support
+DESCRIPTION: Install pypdf along with extra dependencies required for AES encryption and decryption functionalities. This is necessary if you plan to work with encrypted PDFs.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/README.md#_snippet_1
+
+LANGUAGE: bash
+CODE:
+```
+pip install pypdf[crypto]
+```
+
+----------------------------------------
+
+TITLE: Install pypdf with image extraction dependencies
+DESCRIPTION: Installs pypdf with the Pillow library, which is required for image extraction functionalities within PDFs.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/docs/user/installation.md#_snippet_4
+
+LANGUAGE: bash
+CODE:
+```
+pip install pypdf[image]
+```
+
+----------------------------------------
+
+TITLE: Add Internal Page Link Annotation to PDF with pypdf
+DESCRIPTION: Demonstrates how to add an internal link annotation that navigates to a specific page and fit type within the same PDF document using pypdf.annotations.Link and pypdf.generic.Fit. It sets a target page index and a fit type for the destination.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/docs/user/adding-pdf-annotations.md#_snippet_9
+
+LANGUAGE: python
+CODE:
+```
+from pypdf import PdfReader, PdfWriter
+from pypdf.annotations import Link
+from pypdf.generic import Fit
+
+pdf_path = os.path.join(RESOURCE_ROOT, "crazyones.pdf")
+reader = PdfReader(pdf_path)
+page = reader.pages[0]
+writer = PdfWriter()
+writer.add_page(page)
+
+# Add the link
+annotation = Link(
+    rect=(50, 550, 200, 650),
+    target_page_index=3,
+    fit=Fit(fit_type="/FitH", fit_args=(123,)),
+)
+writer.add_annotation(page_number=0, annotation=annotation)
+
+# Write the annotated file to disk
+with open("annotated-pdf.pdf", "wb") as fp:
+    writer.write(fp)
+```
+
+----------------------------------------
+
+TITLE: Merge PDF Pages Without Transformation using pypdf
+DESCRIPTION: Shows how to merge the content of one PDF page (`box.pdf`) onto another (`labeled-edges-center-image.pdf`) without applying any transformations, then saves the combined page.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/docs/user/cropping-and-transforming.md#_snippet_2
+
+LANGUAGE: python
+CODE:
+```
+from pypdf import PdfReader, PdfWriter, Transformation
+
+# Get the data
+reader_base = PdfReader("labeled-edges-center-image.pdf")
+page_base = reader_base.pages[0]
+
+reader = PdfReader("box.pdf")
+page_box = reader.pages[0]
+
+page_base.merge_page(page_box)
+
+# Write the result back
+writer = PdfWriter()
+writer.add_page(page_base)
+with open("merged-foo.pdf", "wb") as fp:
+    writer.write(fp)
+```
+
+----------------------------------------
+
+TITLE: Add External URL Link Annotation to PDF with pypdf
+DESCRIPTION: Shows how to add an external URL link annotation to a PDF page using pypdf.annotations.Link. The example reads a PDF, defines a rectangular area for the link, specifies the target URL, adds the annotation, and saves the document.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/docs/user/adding-pdf-annotations.md#_snippet_8
+
+LANGUAGE: python
+CODE:
+```
+from pypdf import PdfReader, PdfWriter
+from pypdf.annotations import Link
+
+pdf_path = os.path.join(RESOURCE_ROOT, "crazyones.pdf")
+reader = PdfReader(pdf_path)
+page = reader.pages[0]
+writer = PdfWriter()
+writer.add_page(page)
+
+# Add the link
+annotation = Link(
+    rect=(50, 550, 200, 650),
+    url="https://martin-thoma.com/",
+)
+writer.add_annotation(page_number=0, annotation=annotation)
+
+# Write the annotated file to disk
+with open("annotated-pdf.pdf", "wb") as fp:
+    writer.write(fp)
+```
+
+----------------------------------------
+
+TITLE: Add Attachments to PDF using pypdf
+DESCRIPTION: Demonstrates how to embed binary data, such as an image, as an attachment within a PDF document using `pypdf.PdfWriter`. The attachment is added to a blank page and then the PDF is written to a file.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/docs/user/adding-pdf-annotations.md#_snippet_0
+
+LANGUAGE: python
+CODE:
+```
+from pypdf import PdfWriter
+
+writer = PdfWriter()
+writer.add_blank_page(width=200, height=200)
+
+data = b"any bytes - typically read from a file"
+writer.add_attachment("smile.png", data)
+
+with open("output.pdf", "wb") as output_stream:
+    writer.write(output_stream)
+```
+
+----------------------------------------
+
+TITLE: Retrieve PDF attachments with detailed properties using pypdf
+DESCRIPTION: This snippet shows an alternative, object-oriented approach to access attachments. It iterates through `reader.attachment_list` to retrieve attachment objects, allowing access to properties like `name`, `alternative_name`, and `content`.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/docs/user/extract-attachments.md#_snippet_1
+
+LANGUAGE: python
+CODE:
+```
+from pypdf import PdfReader
+
+reader = PdfReader("example.pdf")
+
+for attachment in reader.attachment_list:
+    print(attachment.name, attachment.alternative_name, attachment.content)
+```
+
+----------------------------------------
+
+TITLE: Access PDF Attachments (pypdf)
+DESCRIPTION: Adds a public `reader.attachments` interface to access embedded file attachments within a PDF document. This provides a standardized way to retrieve and manage files embedded in PDFs.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/CHANGELOG.md#_snippet_7
+
+LANGUAGE: APIDOC
+CODE:
+```
+PdfReader.attachments: Public interface to access embedded file attachments.
+```
+
+----------------------------------------
+
+TITLE: Clone PdfObject instances and manage cloning behavior in pypdf
+DESCRIPTION: Illustrates the `clone` method for `PdfObject` to create independent copies, preventing side effects during manual attachment. It also demonstrates that cloning an object already belonging to the writer or cloning the same object twice returns the previously cloned instance.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/docs/user/merging-pdfs.md#_snippet_4
+
+LANGUAGE: python
+CODE:
+```
+cloned_object = object.clone(writer)
+assert cloned_object == object.clone(writer)
+assert object.clone(writer) == object.clone(writer)
+```
+
+----------------------------------------
+
+TITLE: Insert pages multiple times using list-based syntax with pypdf.append
+DESCRIPTION: Demonstrates an advanced usage of `PdfWriter.append` where pages can be inserted multiple times and in a custom order using a list of page indices, allowing for complex page arrangements.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/docs/user/merging-pdfs.md#_snippet_3
+
+LANGUAGE: python
+CODE:
+```
+# Insert pages 2 and 3, with page 1 before, between, and after
+writer.append(reader, [0, 1, 0, 2, 0])
+```
+
+----------------------------------------
+
+TITLE: Scale PDF Page Dimensions by Adjusting Mediabox with pypdf
+DESCRIPTION: Illustrates how to scale only the dimensions of a PDF page by directly modifying its `mediabox` using `pypdf.generic.RectangleObject.scale`, affecting the canvas size.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/docs/user/cropping-and-transforming.md#_snippet_8
+
+LANGUAGE: python
+CODE:
+```
+from pypdf.generic import RectangleObject
+
+mb = page.mediabox
+
+page.mediabox = self.mediabox.scale(sx, sy)
+```
+
+----------------------------------------
+
+TITLE: PdfFileWriter Form Field Update Method
+DESCRIPTION: The updatePageFormFieldValues method within PdfFileWriter allows for programmatic modification of values in form fields present within a PDF document. This provides functionality for interacting with and updating interactive PDF forms.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/docs/meta/changelog-v1.md#_snippet_9
+
+LANGUAGE: APIDOC
+CODE:
+```
+PdfFileWriter:
+  updatePageFormFieldValues()
+```
+
+----------------------------------------
+
+TITLE: PdfFileReader Form Field Extraction Method
+DESCRIPTION: The getFields method, part of PdfFileReader, is used to extract comprehensive field information from PDFs that contain interactive forms. This provides developers with access to form data for further processing or analysis.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/docs/meta/changelog-v1.md#_snippet_14
+
+LANGUAGE: APIDOC
+CODE:
+```
+PdfFileReader:
+  getFields() -> dict
+```
+
+----------------------------------------
+
+TITLE: Install pypdf with cryptography dependencies
+DESCRIPTION: Installs pypdf with extra dependencies required for encrypting or decrypting PDFs that use AES. RC4 encryption is supported by default with the regular installation.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/docs/user/installation.md#_snippet_3
+
+LANGUAGE: bash
+CODE:
+```
+pip install pypdf[crypto]
+```
+
+----------------------------------------
+
+TITLE: Set PDF Viewer Preferences using pypdf
+DESCRIPTION: This Python code demonstrates how to create a PdfWriter, initialize the viewer preferences dictionary using `create_viewer_preferences()`, and then set various display, navigation, and print-related preferences such as hiding the toolbar, setting page mode, print area, duplex settings, and number of copies. Finally, it adds blank pages and saves the modified PDF to 'output.pdf'.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/docs/user/viewer-preferences.md#_snippet_0
+
+LANGUAGE: python
+CODE:
+```
+from pypdf import PdfWriter
+from pypdf.generic import ArrayObject, NumberObject
+
+writer = PdfWriter()
+
+writer.create_viewer_preferences()
+
+# /HideToolbar
+writer.viewer_preferences.hide_toolbar = True
+# /HideMenubar
+writer.viewer_preferences.hide_menubar = True
+# /HideWindowUI
+writer.viewer_preferences.hide_windowui = True
+# /FitWindow
+writer.viewer_preferences.fit_window = True
+# /CenterWindow
+writer.viewer_preferences.center_window = True
+# /DisplayDocTitle
+writer.viewer_preferences.display_doctitle = True
+
+# /NonFullScreenPageMode
+writer.viewer_preferences.non_fullscreen_pagemode = "/UseNone"  # default
+writer.viewer_preferences.non_fullscreen_pagemode = "/UseOutlines"
+writer.viewer_preferences.non_fullscreen_pagemode = "/UseThumbs"
+writer.viewer_preferences.non_fullscreen_pagemode = "/UseOC"
+
+# /Direction
+writer.viewer_preferences.direction = "/L2R"  # default
+writer.viewer_preferences.direction = "/R2L"
+
+# /ViewArea
+writer.viewer_preferences.view_area = "/CropBox"
+# /ViewClip
+writer.viewer_preferences.view_clip = "/CropBox"
+# /PrintArea
+writer.viewer_preferences.print_area = "/CropBox"
+# /PrintClip
+writer.viewer_preferences.print_clip = "/CropBox"
+
+# /PrintScaling
+writer.viewer_preferences.print_scaling = "/None"
+writer.viewer_preferences.print_scaling = "/AppDefault"  # default according to PDF spec
+
+# /Duplex
+writer.viewer_preferences.duplex = "/Simplex"
+writer.viewer_preferences.duplex = "/DuplexFlipShortEdge"
+writer.viewer_preferences.duplex = "/DuplexFlipLongEdge"
+
+# /PickTrayByPDFSize
+writer.viewer_preferences.pick_tray_by_pdfsize = True
+# /PrintPageRange
+writer.viewer_preferences.print_pagerange = ArrayObject(
+    [NumberObject("1"), NumberObject("10"), NumberObject("20"), NumberObject("30")]
+)
+# /NumCopies
+writer.viewer_preferences.num_copies = 2
+
+for i in range(40):
+    writer.add_blank_page(10, 10)
+
+with open("output.pdf", "wb") as output_stream:
+    writer.write(output_stream)
+```
+
+----------------------------------------
+
+TITLE: Manually Adjust All PDF Page Boxes for Precise Scaling with pypdf
+DESCRIPTION: Provides an example of how to gain fine-grained control over PDF page dimensions by manually setting all standard page boxes (`mediabox`, `cropbox`, `trimbox`, `bleedbox`, `artbox`) using `pypdf.generic.RectangleObject`.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/docs/user/cropping-and-transforming.md#_snippet_9
+
+LANGUAGE: python
+CODE:
+```
+from pypdf.generic import RectangleObject
+
+mb = page.mediabox
+
+page.mediabox = RectangleObject((mb.left, mb.bottom, mb.right, mb.top))
+page.cropbox = RectangleObject((mb.left, mb.bottom, mb.right, mb.top))
+page.trimbox = RectangleObject((mb.left, mb.bottom, mb.right, mb.top))
+page.bleedbox = RectangleObject((mb.left, mb.bottom, mb.right, mb.top))
+page.artbox = RectangleObject((mb.left, mb.bottom, mb.right, mb.top))
+```
+
+----------------------------------------
+
+TITLE: Set pypdf Logger Level
+DESCRIPTION: This example illustrates how to configure the logging level for the 'pypdf' logger using Python's 'logging' module. By setting a higher level (e.g., ERROR), you can reduce the verbosity of log messages. The standard logging levels include CRITICAL, ERROR, WARNING, INFO, DEBUG, and NOTSET.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/docs/user/suppress-warnings.md#_snippet_2
+
+LANGUAGE: python
+CODE:
+```
+import logging
+
+logger = logging.getLogger("pypdf")
+logger.setLevel(logging.ERROR)
+```
+
+----------------------------------------
+
+TITLE: Replace Ligatures in Text
+DESCRIPTION: This Python function replaces common typographic ligatures (e.g., 'ﬀ', 'ﬁ') with their individual character equivalents (e.g., 'ff', 'fi') to improve text readability and searchability after extraction. It iterates through a predefined dictionary of ligatures and performs string replacements.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/docs/user/post-processing-in-text-extraction.md#_snippet_0
+
+LANGUAGE: python
+CODE:
+```
+def replace_ligatures(text: str) -> str:
+    ligatures = {
+        "ﬀ": "ff",
+        "ﬁ": "fi",
+        "ﬂ": "fl",
+        "ﬃ": "ffi",
+        "ﬄ": "ffl",
+        "ﬅ": "ft",
+        "ﬆ": "st",
+        # "Ꜳ": "AA",
+        # "Æ": "AE",
+        "ꜳ": "aa",
+    }
+    for search, replace in ligatures.items():
+        text = text.replace(search, replace)
+    return text
+```
+
+----------------------------------------
+
+TITLE: Add page with excluded fields during cloning in pypdf
+DESCRIPTION: Shows how to use the `excluded_fields` parameter with `PdfWriter.add_page` to prevent specific dictionary fields and their linked objects from being cloned. This helps in controlling the size of the output PDF by avoiding unnecessary object copies, such as chained articles.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/docs/user/merging-pdfs.md#_snippet_5
+
+LANGUAGE: python
+CODE:
+```
+new_page = writer.add_page(reader.pages[0], excluded_fields=["/B"])
+```
+
+----------------------------------------
+
+TITLE: Remove Hyphens from Text
+DESCRIPTION: This Python code provides functions to dehyphenate text by identifying words broken across lines with a trailing hyphen and rejoining them. It splits the text into lines, finds hyphenated line endings, and then uses a helper function `dehyphenate` to merge the word parts. It notes limitations for natural dashes, math operands, and names.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/docs/user/post-processing-in-text-extraction.md#_snippet_1
+
+LANGUAGE: python
+CODE:
+```
+from typing import List
+
+def remove_hyphens(text: str) -> str:
+    """
+
+    This fails for:
+    * Natural dashes: well-known, self-replication, use-cases, non-semantic,
+                      Post-processing, Window-wise, viewpoint-dependent
+    * Trailing math operands: 2 - 4
+    * Names: Lopez-Ferreras, VGG-19, CIFAR-100
+    """
+    lines = [line.rstrip() for line in text.split("\n")]
+
+    # Find dashes
+    line_numbers = []
+    for line_no, line in enumerate(lines[:-1]):
+        if line.endswith("-"):
+            line_numbers.append(line_no)
+
+    # Replace
+    for line_no in line_numbers:
+        lines = dehyphenate(lines, line_no)
+
+    return "\n".join(lines)
+
+
+def dehyphenate(lines: List[str], line_no: int) -> List[str]:
+    next_line = lines[line_no + 1]
+    word_suffix = next_line.split(" ")[0]
+
+    lines[line_no] = lines[line_no][:-1] + word_suffix
+    lines[line_no + 1] = lines[line_no + 1][len(word_suffix) :]
+    return lines
+```
+
+----------------------------------------
+
+TITLE: Enhanced Bookmark Features and Destination Class Usage
+DESCRIPTION: Bookmark functionality has been enhanced to support customization of color, boldness, italics, and page fit options. These features are integrated by utilizing the Destination class within the addLink() and addBookmark() methods, allowing for more tailored PDF navigation.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/docs/meta/changelog-v1.md#_snippet_13
+
+LANGUAGE: APIDOC
+CODE:
+```
+// Bookmark features: color, boldness, italics, page fit
+// Implemented via Destination class in:
+PdfFileWriter:
+  addLink(destination: Destination, ...)
+  addBookmark(destination: Destination, ...)
+```
+
+----------------------------------------
+
+TITLE: Add Page Label Support to PdfWriter (pypdf)
+DESCRIPTION: Introduces support for page labels in `PdfWriter`. This allows users to define custom page numbering schemes (e.g., Roman numerals, prefixes) for sections of a PDF document, enhancing navigation and presentation.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/CHANGELOG.md#_snippet_13
+
+LANGUAGE: APIDOC
+CODE:
+```
+PdfWriter: Add page label support.
+```
+
+----------------------------------------
+
+TITLE: pypdf.PageObject.compress_content_streams API
+DESCRIPTION: API documentation for the `compress_content_streams` method of `PageObject`. This method applies lossless compression to the content streams of a PDF page, using the zlib/deflate method. It supports a `level` parameter to control the compression intensity.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/docs/user/file-size.md#_snippet_4
+
+LANGUAGE: APIDOC
+CODE:
+```
+PageObject.compress_content_streams(level: int = 9)
+  level: The compression level, from 0 (no compression) to 9 (highest compression). Uses zlib.compress.
+```
+
+----------------------------------------
+
+TITLE: Manage Popup Annotations for Markups with pypdf
+DESCRIPTION: Illustrates how to create and associate a popup annotation with a text annotation using pypdf.annotations.Popup. It shows how to first add a Text annotation and then link a Popup annotation to it using the parent attribute, finally saving the annotated PDF.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/docs/user/adding-pdf-annotations.md#_snippet_7
+
+LANGUAGE: python
+CODE:
+```
+from pypdf.annotations import Popup, Text
+
+# Arrange
+writer = pypdf.PdfWriter()
+writer.append(os.path.join(RESOURCE_ROOT, "crazyones.pdf"), [0])
+
+# Act
+text_annotation = writer.add_annotation(
+    0,
+    Text(
+        text="Hello World\nThis is the second line!",
+        rect=(50, 550, 200, 650),
+        open=True,
+    ),
+)
+
+popup_annotation = Popup(
+    rect=(50, 550, 200, 650),
+    open=True,
+    parent=text_annotation,
+)
+
+writer.write("annotated-pdf-popup.pdf")
+```
+
+----------------------------------------
+
+TITLE: Add Ellipse Annotation to PDF using pypdf
+DESCRIPTION: Illustrates how to add an elliptical or circular shape annotation to a PDF page by defining its bounding box using `pypdf.annotations.Ellipse`. This creates an ellipse that fits within the specified rectangle.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/docs/user/adding-pdf-annotations.md#_snippet_5
+
+LANGUAGE: python
+CODE:
+```
+from pypdf import PdfReader, PdfWriter
+from pypdf.annotations import Ellipse
+
+pdf_path = os.path.join(RESOURCE_ROOT, "crazyones.pdf")
+reader = PdfReader(pdf_path)
+page = reader.pages[0]
+writer = PdfWriter()
+writer.add_page(page)
+
+# Add the rectangle
+annotation = Ellipse(
+    rect=(50, 550, 200, 650),
+)
+writer.add_annotation(page_number=0, annotation=annotation)
+
+# Write the annotated file to disk
+with open("annotated-pdf.pdf", "wb") as fp:
+    writer.write(fp)
+```
+
+----------------------------------------
+
+TITLE: Add Line Annotation to PDF using pypdf
+DESCRIPTION: Shows how to draw a line annotation on a PDF page between two specified points (p1 and p2) using `pypdf.annotations.Line`. The line can also include associated text.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/docs/user/adding-pdf-annotations.md#_snippet_2
+
+LANGUAGE: python
+CODE:
+```
+from pypdf import PdfReader, PdfWriter
+from pypdf.annotations import Line
+
+pdf_path = os.path.join(RESOURCE_ROOT, "crazyones.pdf")
+reader = PdfReader(pdf_path)
+page = reader.pages[0]
+writer = PdfWriter()
+writer.add_page(page)
+
+# Add the line
+annotation = Line(
+    text="Hello World\nLine2",
+    rect=(50, 550, 200, 650),
+    p1=(50, 550),
+    p2=(200, 650),
+)
+writer.add_annotation(page_number=0, annotation=annotation)
+
+# Write the annotated file to disk
+with open("annotated-pdf.pdf", "wb") as fp:
+    writer.write(fp)
+```
+
+----------------------------------------
+
+TITLE: Extend PdfWriter.append() to PageObjects (pypdf)
+DESCRIPTION: Extends `PdfWriter.append()` to directly accept `PageObject` instances. This streamlines the process of adding individual pages from a `PdfReader` or other sources to a `PdfWriter`.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/CHANGELOG.md#_snippet_5
+
+LANGUAGE: APIDOC
+CODE:
+```
+PdfWriter.append(page: PageObject): Allow appending PageObjects directly.
+```
+
+----------------------------------------
+
+TITLE: Install pypdf for current user
+DESCRIPTION: Installs pypdf specifically for the current user, avoiding system-wide installation. This method is useful when super-user (root) privileges are not available.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/docs/user/installation.md#_snippet_1
+
+LANGUAGE: bash
+CODE:
+```
+pip install --user pypdf
+```
+
+----------------------------------------
+
+TITLE: Add Polyline Annotation (pypdf)
+DESCRIPTION: Enables the creation of polyline annotations using `AnnotationBuilder`. Users can now draw multi-segment lines within PDF documents, useful for highlighting paths or complex shapes.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/CHANGELOG.md#_snippet_2
+
+LANGUAGE: APIDOC
+CODE:
+```
+AnnotationBuilder.polyline: Add support for polyline annotations.
+```
+
+----------------------------------------
+
+TITLE: Add Polygon Annotation Support (pypdf)
+DESCRIPTION: Adds support for creating polygon annotations. This allows users to draw multi-sided closed shapes within PDF documents, useful for highlighting arbitrary areas.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/CHANGELOG.md#_snippet_16
+
+LANGUAGE: APIDOC
+CODE:
+```
+Annotation: Add polygon annotation support.
+```
+
+----------------------------------------
+
+TITLE: Merge Forms with Overlapping Names (pypdf)
+DESCRIPTION: Enables the merging of PDF forms even when they contain fields with overlapping names. This improves the utility of form merging operations, handling more complex scenarios without conflicts.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/CHANGELOG.md#_snippet_11
+
+LANGUAGE: APIDOC
+CODE:
+```
+Merge forms: Enable merging forms with overlapping names.
+```
+
+----------------------------------------
+
+TITLE: Extracting Widget Annotations from Page Annotations
+DESCRIPTION: This Python snippet illustrates an alternative approach to retrieve form-related objects by iterating through a page's annotations and filtering for '/Widget' subtypes. Unlike `get_fields()`, this method returns more generic dictionary-like objects, which can expose additional data such as the widget's precise position (Rect) on the page, making it useful for layout-specific tasks. It's important to note that this method might return child objects (e.g., individual radio buttons) where `get_fields()` returns the parent group.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/docs/user/forms.md#_snippet_3
+
+LANGUAGE: Python
+CODE:
+```
+from pypdf import PdfReader
+from pypdf.constants import AnnotationDictionaryAttributes
+
+reader = PdfReader("form.pdf")
+fields = []
+for page in reader.pages:
+    for annot in page.annotations:
+        annot = annot.get_object()
+        if annot[AnnotationDictionaryAttributes.Subtype] == "/Widget":
+            fields.append(annot)
+```
+
+----------------------------------------
+
+TITLE: Add Circle Annotation Support (pypdf)
+DESCRIPTION: Adds support for creating circle annotations. This expands the range of graphical annotations that can be programmatically added to PDF documents.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/CHANGELOG.md#_snippet_15
+
+LANGUAGE: APIDOC
+CODE:
+```
+Annotation: Add circle annotation support.
+```
+
+----------------------------------------
+
+TITLE: pypdf.PageObject.extract_text Visitor Function Parameters
+DESCRIPTION: API documentation for the `visitor_text` and `visitor_operand_before` arguments of the `pypdf.PageObject.extract_text` function. It details the parameters passed to each visitor function, including text content, transformation matrices, font information, and operator details.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/docs/user/extract-text.md#_snippet_1
+
+LANGUAGE: APIDOC
+CODE:
+```
+visitor_text(text, user_matrix, tm_matrix, font_dictionary, font_size):
+  text: The current text fragment (can be up to a full line).
+  user_matrix: Current matrix from user coordinate space (CTM).
+  tm_matrix: Current matrix from text coordinate space.
+  font_dictionary: Full font dictionary (may be None).
+  font_size: The raw text size in text coordinate space.
+
+visitor_operand_before(operator, operand_arguments, current_transformation_matrix, text_matrix):
+  operator: The PDF operator.
+  operand_arguments: Arguments associated with the operator.
+  current_transformation_matrix: The current transformation matrix.
+  text_matrix: The text matrix.
+```
+
+----------------------------------------
+
+TITLE: Run Python Code with Deprecation Warnings
+DESCRIPTION: Command-line instruction to execute a Python script while enabling all deprecation warnings, which is useful for identifying outdated API usage during the migration process.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/docs/user/migration-1-to-2.md#_snippet_0
+
+LANGUAGE: bash
+CODE:
+```
+python -W all your_code.py
+```
+
+----------------------------------------
+
+TITLE: Install JBIG2 support on Ubuntu
+DESCRIPTION: Installs the `jbig2dec` package, an OS-level dependency required for JBIG2 image support in pypdf. This specific command is for Ubuntu operating systems.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/docs/user/installation.md#_snippet_5
+
+LANGUAGE: bash
+CODE:
+```
+sudo apt-get install jbig2dec
+```
+
+----------------------------------------
+
+TITLE: Deprecated PyPDF Functions and Classes
+DESCRIPTION: Provides a list of classes and functions that have been deprecated in PyPDF, along with recommended replacements or notes on their removal.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/docs/user/migration-1-to-2.md#_snippet_13
+
+LANGUAGE: APIDOC
+CODE:
+```
+Deprecations:
+* `PyPDF2.utils.ConvertFunctionsToVirtualList`
+* `PyPDF2.utils.formatWarning`
+* `PyPDF2.isInt(obj)`: Use `instance(obj, int)` instead
+* `PyPDF2.u_(s)`: Use `s` directly
+* `PyPDF2.chr_(c)`: Use `chr(c)` instead
+* `PyPDF2.barray(b)`: Use `bytearray(b)` instead
+* `PyPDF2.isBytes(b)`: Use `instance(b, type(bytes()))` instead
+* `PyPDF2.xrange_fn`: Use `range` instead
+* `PyPDF2.string_type`: Use `str` instead
+* `PyPDF2.isString(s)`: Use `instance(s, str)` instead
+* `PyPDF2._basestring`: Use `str` instead
+* `b_(...)` was removed. You should typically be able use the bytes object directly, otherwise you can [copy this](https://github.com/py-pdf/PyPDF2/pull/986#issuecomment-1230698069)
+```
+
+----------------------------------------
+
+TITLE: APIDOC: pypdf.constants.AnnotationFlag
+DESCRIPTION: Documents the pypdf.constants.AnnotationFlag class, which defines various flags used for PDF annotations. This class provides a structured way to access predefined constant values related to annotation properties.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/docs/modules/constants.rst#_snippet_0
+
+LANGUAGE: APIDOC
+CODE:
+```
+Class: pypdf.constants.AnnotationFlag
+  Purpose: Defines constant flags for PDF annotations.
+  Members: All public and undocumented members are included.
+  Inheritance: Shows inheritance hierarchy.
+```
+
+----------------------------------------
+
+TITLE: PyPDF2 API Deprecations: PEP8 Renames (Version 2.3.0)
+DESCRIPTION: This section details the API changes in PyPDF2 version 2.3.0, specifically the renaming of parameters and methods to align with PEP8 compliance. Developers should update their code to use the new snake_case names for functions, parameters, and attributes across PdfWriter, PyPDF2.filters, PyPDF2.xmp, and PyPDF2.generic modules to avoid deprecation warnings and ensure future compatibility.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/CHANGELOG.md#_snippet_18
+
+LANGUAGE: APIDOC
+CODE:
+```
+PyPDF2 API Deprecations (Version 2.3.0):
+
+- PdfWriter:
+  - get_page: pageNumber parameter renamed to page_number
+
+- PyPDF2.filters:
+  - All classes: decodeParms parameter renamed to decode_parms
+  - decodeStreamData renamed to decode_stream_data
+
+- PyPDF2.xmp.XmpInformation:
+  - rdfRoot renamed to rdf_root
+  - xmp_createDate renamed to xmp_create_date
+  - xmp_creatorTool renamed to xmp_creator_tool
+  - xmp_metadataDate renamed to xmp_metadata_date
+  - xmp_modifyDate renamed to xmp_modify_date
+  - xmpMetadata renamed to xmp_metadata
+  - xmpmm_documentId renamed to xmpmm_document_id
+  - xmpmm_instanceId renamed to xmpmm_instance_id
+
+- PyPDF2.generic:
+  - readHexStringFromStream renamed to read_hex_string_from_stream
+  - initializeFromDictionary renamed to initialize_from_dictionary
+  - createStringObject renamed to create_string_object
+  - TreeObject:
+    - hasChildren renamed to has_children
+    - emptyTree renamed to empty_tree
+```
+
+----------------------------------------
+
+TITLE: PyPDF2 1.x to 2.x API Changes Reference
+DESCRIPTION: Detailed reference of API changes between PyPDF2 1.x and 2.x, including module removals, class renamings, and modifications to class parameters and their default values.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/docs/user/migration-1-to-2.md#_snippet_1
+
+LANGUAGE: APIDOC
+CODE:
+```
+Module Changes:
+  - PyPDF2.utils: Removed
+  - PyPDF2.pdf: Removed (import directly from PyPDF2 or PyPDF2.generic)
+
+Class Renamings:
+  - PdfFileReader -> PdfReader
+  - PdfFileWriter -> PdfWriter
+  - PdfFileMerger -> PdfMerger
+
+Parameter Changes:
+  - All Reader/Writer/Merger classes:
+    - strict: Default changed from True to False
+  - PdfFileReader (now PdfReader) and PdfFileMerger (now PdfMerger):
+    - overwriteWarnings: Parameter removed (new behavior is equivalent to overwriteWarnings=False)
+```
+
+----------------------------------------
+
+TITLE: Common PyPDF2 API Naming Changes
+DESCRIPTION: This section lists frequently used function and method names that have been updated across various parts of the PyPDF2 library to follow snake_case conventions.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/docs/user/migration-1-to-2.md#_snippet_4
+
+LANGUAGE: APIDOC
+CODE:
+```
+Common:
+  getObject -> get_object
+  writeToStream -> write_to_stream
+  readFromStream -> read_from_stream
+```
+
+----------------------------------------
+
+TITLE: General Method Renames in PyPDF
+DESCRIPTION: Documents the standardization of method names across various PyPDF classes, transitioning from camelCase to snake_case for improved consistency and Pythonic style.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/docs/user/migration-1-to-2.md#_snippet_9
+
+LANGUAGE: APIDOC
+CODE:
+```
+- `upperRight` → `upper_right`
+- `mergePage` → `merge_page`
+- `rotateClockwise` / `rotateCounterClockwise` → `rotate_clockwise`
+- `_mergeResources` → `_merge_resources`
+- `_contentStreamRename` → `_content_stream_rename`
+- `_pushPopGS` → `_push_pop_gs`
+- `_addTransformationMatrix` → `_add_transformation_matrix`
+- `_mergePage` → `_merge_page`
+```
+
+----------------------------------------
+
+TITLE: Deterministic PDF Merging (pypdf)
+DESCRIPTION: Ensures that merging pages produces a deterministic PDF output. This means that repeated merges of the same input pages will consistently result in an identical output file, improving reliability and reproducibility.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/CHANGELOG.md#_snippet_17
+
+LANGUAGE: APIDOC
+CODE:
+```
+Merging pages: Make merging pages produce a deterministic PDF.
+```
+
+----------------------------------------
+
+TITLE: PdfReader Class API Naming Changes
+DESCRIPTION: This section documents the API changes for the PdfReader class, including method renames, attribute conversions, and parameter name updates, reflecting a shift towards more Pythonic conventions.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/docs/user/migration-1-to-2.md#_snippet_5
+
+LANGUAGE: APIDOC
+CODE:
+```
+PdfReader class:
+  reader.getPage(pageNumber) -> reader.pages[page_number]
+  reader.getNumPages() / reader.numPages -> len(reader.pages)
+  getDocumentInfo -> metadata
+  flattenedPages attribute -> flattened_pages
+  resolvedObjects attribute -> resolved_objects
+  xrefIndex attribute -> xref_index
+  getNamedDestinations / namedDestinations attribute -> named_destinations
+  getPageLayout / pageLayout -> page_layout attribute
+  getPageMode / pageMode -> page_mode attribute
+  getIsEncrypted / isEncrypted -> is_encrypted attribute
+  getOutlines -> get_outlines
+  readObjectHeader -> read_object_header
+  cacheGetIndirectObject -> cache_get_indirect_object
+  cacheIndirectObject -> cache_indirect_object
+  getDestinationPageNumber -> get_destination_page_number
+  readNextEndLine -> read_next_end_line
+  _zeroXref -> _zero_xref
+  _authenticateUserPassword -> _authenticate_user_password
+  _pageId2Num attribute -> _page_id2num
+  _buildDestination -> _build_destination
+  _buildOutline -> _build_outline
+  _getPageNumberByIndirect(indirectRef) -> _get_page_number_by_indirect(indirect_ref)
+  _getObjectFromStream -> _get_object_from_stream
+  _decryptObject -> _decrypt_object
+  _flatten(..., indirectRef) -> _flatten(..., indirect_ref)
+  _buildField -> _build_field
+  _checkKids -> _check_kids
+  _writeField -> _write_field
+  _write_field(..., fieldAttributes) -> _write_field(..., field_attributes)
+  _read_xref_subsections(..., getEntry, ...) -> _read_xref_subsections(..., get_entry, ...)
+```
+
+----------------------------------------
+
+TITLE: Page Class API Naming Changes
+DESCRIPTION: This section describes the API changes for the Page class, focusing on property renames for bounding boxes and simplified access to dimensions and coordinates.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/docs/user/migration-1-to-2.md#_snippet_8
+
+LANGUAGE: APIDOC
+CODE:
+```
+Page class:
+  artBox / bleedBox / cropBox / mediaBox / trimBox -> artbox / bleedbox / cropbox / mediabox / trimbox
+  getWidth, getHeight -> width / height
+  getLowerLeft_x / getUpperLeft_x -> left
+  getUpperRight_x / getLowerRight_x -> right
+  getLowerLeft_y / getLowerRight_y -> bottom
+  getUpperRight_y / getUpperLeft_y -> top
+  getLowerLeft / setLowerLeft -> lower_left property
+```
+
+----------------------------------------
+
+TITLE: PyPDF2.generic API Naming Changes
+DESCRIPTION: This section outlines the renaming of functions and methods within the PyPDF2.generic module, including a specific note on the DocumentInformation.getText method's deprecation.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/docs/user/migration-1-to-2.md#_snippet_3
+
+LANGUAGE: APIDOC
+CODE:
+```
+PyPDF2.generic:
+  readObject -> read_object
+  convertToInt -> convert_to_int
+  DocumentInformation.getText -> DocumentInformation._get_text : This method should typically not be used; please let me know if you need it.
+  readHexStringFromStream -> read_hex_string_from_stream
+  initializeFromDictionary -> initialize_from_dictionary
+  createStringObject -> create_string_object
+  TreeObject.hasChildren -> TreeObject.has_children
+  TreeObject.emptyTree -> TreeObject.empty_tree
+```
+
+----------------------------------------
+
+TITLE: PdfMerger Class API Naming Changes
+DESCRIPTION: This section outlines the API modifications for the PdfMerger class, including changes to constructor parameters and method names.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/docs/user/migration-1-to-2.md#_snippet_7
+
+LANGUAGE: APIDOC
+CODE:
+```
+PdfMerger class:
+  __init__ parameter: strict=True -> strict=False (the PdfFileMerger still has the old default)
+  addMetadata -> add_metadata
+  addNamedDestination -> add_named_destination
+  setPageLayout -> set_page_layout
+  setPageMode -> set_page_mode
+```
+
+----------------------------------------
+
+TITLE: Configure pypdf Page Merge Box Behavior
+DESCRIPTION: This snippet shows how to revert the page merging behavior in pypdf versions greater than 3.4.0. By default, `pypdf>3.4.0` uses `cropbox` for merging, while `pypdf<=3.4.0` used `trimbox`. This code allows users to restore the old `trimbox` behavior if needed.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/docs/user/cropping-and-transforming.md#_snippet_10
+
+LANGUAGE: python
+CODE:
+```
+pypdf._page.MERGE_CROP_BOX = "trimbox"
+```
+
+----------------------------------------
+
+TITLE: utils.py Function Renames and Relocations
+DESCRIPTION: Outlines the renaming of functions in the `utils.py` module and notes the relocation of the `RC4_encrypt` function to the security module.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/docs/user/migration-1-to-2.md#_snippet_11
+
+LANGUAGE: APIDOC
+CODE:
+```
+utils.py:
+  - `matrixMultiply` → `matrix_multiply`
+  - `RC4_encrypt` is moved to the security module
+```
+
+----------------------------------------
+
+TITLE: Parameter Name Changes Across PyPDF Methods
+DESCRIPTION: Lists specific parameter name changes for various methods in PyPDF, standardizing naming conventions (e.g., `pageNumber` to `page_number`).
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/docs/user/migration-1-to-2.md#_snippet_12
+
+LANGUAGE: APIDOC
+CODE:
+```
+Parameter Names:
+* `PdfWriter.get_page`: `pageNumber` → `page_number`
+* `PyPDF2.filters` (all classes): `decodeParms` → `decode_parms`
+* `PyPDF2.filters` (all classes): `decodeStreamData` → `decode_stream_data`
+* `pagenum` → `page_number`
+* `PdfMerger.merge`: `position` → `page_number`
+* `PdfWriter.add_outline_item_destination`: `dest` → `page_destination`
+* `PdfWriter.add_named_destination_object`: `dest` → `page_destination`
+* `PdfWriter.encrypt`: `user_pwd` → `user_password`
+* `PdfWriter.encrypt`: `owner_pwd` → `owner_password`
+```
+
+----------------------------------------
+
+TITLE: Transparent Free-Text Annotations (pypdf)
+DESCRIPTION: Allows free-text annotations to have transparent borders and backgrounds. This provides greater styling flexibility for annotations, enabling them to blend more seamlessly with the document content.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/CHANGELOG.md#_snippet_9
+
+LANGUAGE: APIDOC
+CODE:
+```
+Free-text annotation: Allow transparent border/background.
+```
+
+----------------------------------------
+
+TITLE: PdfFileReader and PdfFileMerger Parameter Changes
+DESCRIPTION: The 'warndest' parameter was removed from PdfFileReader. Additionally, PdfFileReader and PdfFileMerger no longer support the 'overwriteWarnings' parameter; the new default behavior is equivalent to 'overwriteWarnings=False', meaning warnings are no longer overwritten by default.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/CHANGELOG.md#_snippet_20
+
+LANGUAGE: APIDOC
+CODE:
+```
+PdfFileReader:
+  - 'warndest' parameter removed
+PdfFileReader, PdfFileMerger:
+  - 'overwriteWarnings' parameter removed
+  - New default behavior is overwriteWarnings=False
+```
+
+----------------------------------------
+
+TITLE: PdfFileMerger Import Path Update
+DESCRIPTION: The internal module for PdfFileMerger was renamed from merger.py to _merger.py. Users must now import PdfFileMerger directly from the PyPDF2 package, simplifying the import path and making it more consistent with standard library usage.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/CHANGELOG.md#_snippet_22
+
+LANGUAGE: APIDOC
+CODE:
+```
+Old import: from PyPDF2.merger import PdfFileMerger
+New import: from PyPDF2 import PdfFileMerger
+```
+
+----------------------------------------
+
+TITLE: PyPDF2 Exception Module Consolidation
+DESCRIPTION: All custom exceptions in PyPDF2 are now consolidated under the `PyPDF2.errors` module. This change streamlines exception handling by providing a single, dedicated location for all PyPDF2-specific errors.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/CHANGELOG.md#_snippet_24
+
+LANGUAGE: APIDOC
+CODE:
+```
+All Exceptions are now in PyPDF2.errors:
+  - PageSizeNotDefinedError
+  - PdfReadError
+  - PdfReadWarning
+  - PyPdfError
+```
+
+----------------------------------------
+
+TITLE: pypdf.DocumentInformation Class API Reference
+DESCRIPTION: API documentation for the `pypdf.DocumentInformation` class, detailing its members and inheritance as generated by Sphinx `autoclass`.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/docs/modules/DocumentInformation.rst#_snippet_0
+
+LANGUAGE: APIDOC
+CODE:
+```
+Class: pypdf.DocumentInformation
+  Purpose: Represents the document information dictionary of a PDF file, typically found in the /Info entry of the PDF trailer.
+  Members:
+    - All public members are documented.
+    - Undocumented members are also included.
+  Inheritance:
+    - Shows the class inheritance hierarchy.
+```
+
+----------------------------------------
+
+TITLE: PyPDF2.pdf Module Removal and Object Relocation
+DESCRIPTION: The `PyPDF2.pdf` module has been removed, with its contents moved directly into the main library. Users should now import directly from `PyPDF2` for most components. Specifically, `RectangleObject` is relocated to `PyPDF2.generic`.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/CHANGELOG.md#_snippet_25
+
+LANGUAGE: APIDOC
+CODE:
+```
+PyPDF2.pdf module removed.
+Import directly from PyPDF2.
+RectangleObject is in PyPDF2.generic.
+```
+
+----------------------------------------
+
+TITLE: Add AnnotationFlag (pypdf)
+DESCRIPTION: Introduces `AnnotationFlag`, likely an enumeration or constant, to represent various annotation properties. This provides a structured way to manage and apply flags to annotations.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/CHANGELOG.md#_snippet_4
+
+LANGUAGE: APIDOC
+CODE:
+```
+AnnotationFlag: Add new flag for annotations.
+```
+
+----------------------------------------
+
+TITLE: Comprehensive Type Annotations
+DESCRIPTION: All functions and methods within PyPDF2 now include type annotations, enhancing code clarity, maintainability, and enabling static analysis with tools like MyPy.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/CHANGELOG.md#_snippet_31
+
+LANGUAGE: APIDOC
+CODE:
+```
+All functions/methods now include type annotations.
+```
+
+----------------------------------------
+
+TITLE: PyPDF2.xmp.XmpInformation API Naming Changes
+DESCRIPTION: This section details the renaming of properties within the PyPDF2.xmp.XmpInformation class, primarily converting camelCase names to snake_case for improved consistency and readability.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/docs/user/migration-1-to-2.md#_snippet_2
+
+LANGUAGE: APIDOC
+CODE:
+```
+PyPDF2.xmp.XmpInformation:
+  rdfRoot -> rdf_root
+  xmp_createDate -> xmp_create_date
+  xmp_creatorTool -> xmp_creator_tool
+  xmp_metadataDate -> xmp_metadata_date
+  xmp_modifyDate -> xmp_modify_date
+  xmpMetadata -> xmp_metadata
+  xmpmm_documentId -> xmpmm_document_id
+  xmpmm_instanceId -> xmpmm_instance_id
+```
+
+----------------------------------------
+
+TITLE: pypdf.Transformation Class API Reference
+DESCRIPTION: This snippet provides the API definition for the `Transformation` class from the `pypdf` library. While the full details of its methods and properties are generated by Sphinx's `autoclass` directive, this entry represents its core class signature as an API reference.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/docs/modules/Transformation.rst#_snippet_0
+
+LANGUAGE: APIDOC
+CODE:
+```
+class pypdf.Transformation:
+```
+
+----------------------------------------
+
+TITLE: Ignore Python Warnings Globally
+DESCRIPTION: This code shows how to use Python's built-in 'warnings' module to ignore all warnings programmatically. While useful for suppressing noise, it's often recommended to run Python with the '-W' flag in development or CI environments to ensure all warnings are visible and addressed.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/docs/user/suppress-warnings.md#_snippet_1
+
+LANGUAGE: python
+CODE:
+```
+import warnings
+
+warnings.filterwarnings("ignore")
+```
+
+----------------------------------------
+
+TITLE: pypdf.PageRange Class API Documentation
+DESCRIPTION: API documentation for the `pypdf.PageRange` class, which is used to define and manage ranges of pages in PDF documents. This documentation is automatically generated from the Python source using Sphinx's `autoclass` directive, including all public and inherited members.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/docs/modules/PageRange.rst#_snippet_0
+
+LANGUAGE: APIDOC
+CODE:
+```
+Class: pypdf.PageRange
+  Description: Represents a range of pages within a PDF document, typically used for operations like extracting or merging specific pages.
+  Members:
+    (Automatically documented by Sphinx autoclass directive)
+  Inheritance:
+    (Automatically documented by Sphinx autoclass directive)
+```
+
+----------------------------------------
+
+TITLE: PDF Text Object Representation with Whitespace Adjustments
+DESCRIPTION: This snippet illustrates how text is represented at a low level within a PDF content stream. It shows absolute positioning and character spacing adjustments, where numbers indicate horizontal displacement. This format makes it challenging to accurately reconstruct original whitespace.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/docs/user/extract-text.md#_snippet_4
+
+LANGUAGE: PDF Content Stream
+CODE:
+```
+[(This is a )9(te)-3(st)9( do)-4(cu)13(m)-4(en)12(t )-3(b)3(y)-3( )9(Et)-2(h)3(an)4( Nels)13(o)-5(n)3(.)] TJ
+```
+
+----------------------------------------
+
+TITLE: Initial MyPy Type Support Integration
+DESCRIPTION: Initial support for static type checking with MyPy has been added, laying the groundwork for improved code quality and error detection during development.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/CHANGELOG.md#_snippet_32
+
+LANGUAGE: APIDOC
+CODE:
+```
+Initial type support added with mypy.
+```
+
+----------------------------------------
+
+TITLE: APIDOC: pypdf.constants.UserAccessPermissions
+DESCRIPTION: Documents the pypdf.constants.UserAccessPermissions class, which defines constant permissions related to user access and document security in PDF files. These permissions control actions like printing, modifying, or copying content.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/docs/modules/constants.rst#_snippet_3
+
+LANGUAGE: APIDOC
+CODE:
+```
+Class: pypdf.constants.UserAccessPermissions
+  Purpose: Defines constant permissions for user access in PDF.
+  Members: All public and undocumented members are included.
+  Inheritance: Shows inheritance hierarchy.
+```
+
+----------------------------------------
+
+TITLE: PyPDF2 Utility Function Replacements
+DESCRIPTION: Several utility functions in PyPDF2 have been removed or replaced with standard Python built-ins or more idiomatic Python constructs. This change encourages the use of native Python features for common operations, reducing library-specific dependencies.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/CHANGELOG.md#_snippet_23
+
+LANGUAGE: APIDOC
+CODE:
+```
+utils:
+  - ConvertFunctionsToVirtualList removed
+  - formatWarning removed
+  - isInt(obj): Use instance(obj, int) instead
+  - u_(s): Use s directly
+  - chr_(c): Use chr(c) instead
+  - barray(b): Use bytearray(b) instead
+  - isBytes(b): Use instance(b, type(bytes())) instead
+  - xrange_fn: Use range instead
+  - string_type: Use str instead
+  - isString(s): Use instance(s, str) instead
+  - _basestring: Use str instead
+```
+
+----------------------------------------
+
+TITLE: APIDOC: pypdf.constants.ImageType
+DESCRIPTION: Documents the pypdf.constants.ImageType class, which defines constant types for images embedded within PDF documents. This helps in identifying and handling different image formats supported by the library.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/docs/modules/constants.rst#_snippet_1
+
+LANGUAGE: APIDOC
+CODE:
+```
+Class: pypdf.constants.ImageType
+  Purpose: Defines constant types for images in PDF.
+  Members: All public and undocumented members are included.
+  Inheritance: Shows inheritance hierarchy.
+```
+
+----------------------------------------
+
+TITLE: PDF Trailer Structure Example
+DESCRIPTION: Shows the structure of a PDF trailer, which is located at the end of the file. It begins with the 'trailer' keyword, followed by a dictionary containing essential document information like '/Root' and '/Size'. It also includes 'startxref' indicating the byte offset of the xref table and '%%EOF' as the end-of-file marker.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/docs/dev/pdf-format.md#_snippet_2
+
+LANGUAGE: text
+CODE:
+```
+trailer << /Root 5 0 R
+           /Size 6
+        >>
+startxref 1234
+%%EOF
+```
+
+----------------------------------------
+
+TITLE: pypdf.PdfWriter.write_stream Method Internal Steps
+DESCRIPTION: Details the internal steps performed by the `pypdf.PdfWriter.write_stream` method when writing a PDF file, including handling references, writing file structure, cross-reference table, and trailer. This method orchestrates the complete PDF file generation process.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/docs/dev/pypdf-writing.md#_snippet_0
+
+LANGUAGE: APIDOC
+CODE:
+```
+pypdf.PdfWriter.write_stream:
+  Description: Core steps for writing a PDF file to a stream.
+  Steps:
+    1. _sweep_indirect_references:
+      Purpose: Ensures circular references to objects are correctly handled.
+      Detail: Adds object reference numbers of circularly referenced objects to an external reference map, allowing self-page-referencing trees to reference the correct new object location instead of copying.
+    2. _write_pdf_structure (Write File Header and Body):
+      Purpose: Writes the PDF header and all objects (pages, annotations, form fields) that constitute the PDF content to the output stream.
+      Detail: Stores the byte offsets of these objects for subsequent use in generating the cross-reference table.
+    3. _write_xref_table (Write Cross-Reference Table):
+      Purpose: Generates and writes the cross-reference table (xref table) to the output stream.
+      Detail: Uses the previously stored object locations to create a table containing byte offsets for each object, enabling quick random access within the PDF file.
+    4. _write_trailer (Write File Trailer):
+      Purpose: Writes the file trailer to the output stream.
+      Detail: Contains essential information such as the total number of objects in the PDF, the location of the root object (Catalog), the Info object (metadata), and specifies the location of the xref table.
+```
+
+----------------------------------------
+
+TITLE: Install pypdf Development Requirements
+DESCRIPTION: Installs all necessary Python packages for pypdf development from the `requirements/dev.txt` file, ensuring the local environment is set up correctly for contributing.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/docs/dev/intro.md#_snippet_0
+
+LANGUAGE: bash
+CODE:
+```
+pip install -r requirements/dev.txt
+```
+
+----------------------------------------
+
+TITLE: Change in PDF Number Representation (pypdf)
+DESCRIPTION: pypdf versions 3.4.0 and later now represent numbers parsed from PDF files as floats instead of Decimals. This change aligns with other PDF libraries and viewers, potentially offering speed improvements. Users with documents relying on more than 18 decimals of precision should verify compatibility, as this primarily affects graphical elements and exact positions, not text content.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/CHANGELOG.md#_snippet_10
+
+LANGUAGE: APIDOC
+CODE:
+```
+NOTICE: pypdf<3.4.0 represented numbers as Decimal, pypdf>=3.4.0 represents them as floats. This affects numbers used for graphics and exact positions, not text. Check if documents relying on >18 decimals of precision still work as expected.
+```
+
+----------------------------------------
+
+TITLE: Install pypdf development version from Git
+DESCRIPTION: Installs the current development version of pypdf directly from its GitHub repository using pip, allowing access to the latest features and bug fixes.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/docs/user/installation.md#_snippet_6
+
+LANGUAGE: bash
+CODE:
+```
+pip install git+https://github.com/py-pdf/pypdf.git
+```
+
+----------------------------------------
+
+TITLE: PDF Body Indirect Object Structure Example
+DESCRIPTION: Illustrates the structure of indirect objects within the PDF body. Each object starts with a unique integer counter and generation number, followed by the object's dictionary content, and ends with 'endobj'. This example shows various page and catalog objects with their properties.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/docs/dev/pdf-format.md#_snippet_1
+
+LANGUAGE: text
+CODE:
+```
+1 0 obj << /Count 1 /Kids [4 0 R] /Type /Pages >> endobj
+2 0 obj << >> endobj
+3 0 obj << >> endobj
+4 0 obj << /Contents 3 0 R /CropBox [0.0 0.0 2550.0 3508.0]
+ /MediaBox [0.0 0.0 2550.0 3508.0] /Parent 1 0 R
+ /Resources << /Font << >> >>
+ /Rotate 0 /Type /Page >> endobj
+5 0 obj << /Pages 1 0 R /Type /Catalog >> endobj
+```
+
+----------------------------------------
+
+TITLE: Execute pypdf test suite with pytest
+DESCRIPTION: Shows how to run the pypdf project's unit tests using the pytest framework. This command executes the entire test suite and displays the results, including passed, xfailed, and warning counts.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/README.md#_snippet_3
+
+LANGUAGE: bash
+CODE:
+```
+$ pytest
+===================== test session starts =====================
+platform linux -- Python 3.6.15, pytest-7.0.1, pluggy-1.0.0
+rootdir: /home/moose/GitHub/Martin/pypdf
+plugins: cov-3.0.0
+collected 233 items
+
+tests/test_basic_features.py ..                         [  0%]
+tests/test_constants.py .                               [  1%]
+tests/test_filters.py .................x.....           [ 11%]
+tests/test_generic.py ................................. [ 25%]
+.............                                           [ 30%]
+tests/test_javascript.py ..                             [ 31%]
+tests/test_merger.py .                                  [ 32%]
+tests/test_page.py .........................            [ 42%]
+tests/test_pagerange.py ................                [ 49%]
+tests/test_papersizes.py ..................             [ 57%]
+tests/test_reader.py .................................. [ 72%]
+...............                                         [ 78%]
+tests/test_utils.py ....................                [ 87%]
+tests/test_workflows.py ..........                      [ 91%]
+tests/test_writer.py .................                  [ 98%]
+tests/test_xmp.py ...                                   [100%]
+
+========== 232 passed, 1 xfailed, 1 warning in 4.52s ==========
+```
+
+----------------------------------------
+
+TITLE: Page Number Retrieval Methods
+DESCRIPTION: These methods provide functionality to retrieve the page number associated with a given PageObject or Destination within a PDF. They are useful for navigation, referencing specific pages, and programmatic control over document structure.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/docs/meta/changelog-v1.md#_snippet_11
+
+LANGUAGE: APIDOC
+CODE:
+```
+PageObject:
+  getPageNumber()
+Destination:
+  getDestinationPageNumber()
+```
+
+----------------------------------------
+
+TITLE: PdfFileWriter Add Attachment Method
+DESCRIPTION: The addAttachment method supports embedding external files as attachments directly into a PDF document. This feature enhances the ability to bundle related content within a PDF, with future enhancements planned for broader embedded file operations.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/docs/meta/changelog-v1.md#_snippet_10
+
+LANGUAGE: APIDOC
+CODE:
+```
+PdfFileWriter:
+  addAttachment()
+```
+
+----------------------------------------
+
+TITLE: Initialize Git Submodules for Sample Files
+DESCRIPTION: Executes the command to update and initialize the `sample-files` git submodule. This submodule contains extensive test data, allowing the main pypdf repository to remain small while providing comprehensive testing capabilities.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/docs/dev/intro.md#_snippet_1
+
+LANGUAGE: bash
+CODE:
+```
+git submodule update --init
+```
+
+----------------------------------------
+
+TITLE: Define Standard Git Commit Message Format
+DESCRIPTION: Specifies the required format for Git commit messages in the pypdf project. The format includes a `PREFIX` (e.g., `SEC`, `BUG`, `ENH`, `DEP`, `PI`, `ROB`, `DOC`, `TST`, `DEV`, `MAINT`, `STY`) and a `DESCRIPTION` on the first line, followed by an optional `BODY`. This structure is essential for automatic CHANGELOG generation and maintaining a clear commit history. The prefix helps categorize the change type.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/docs/dev/intro.md#_snippet_2
+
+LANGUAGE: text
+CODE:
+```
+PREFIX: DESCRIPTION
+
+BODY
+```
+
+----------------------------------------
+
+TITLE: Install pypdf PR Version from Git
+DESCRIPTION: Install an unreleased version of pypdf directly from a Git pull request using pip. This allows testing in-progress features or bug fixes before they are officially released.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/docs/dev/testing.md#_snippet_3
+
+LANGUAGE: Shell
+CODE:
+```
+pip install git+https://github.com/pubpub-zz/pypdf.git@iss2200
+```
+
+----------------------------------------
+
+TITLE: Google-Style Docstring Example for Python Functions
+DESCRIPTION: Demonstrates the recommended Google-Style Docstring format for Python functions, detailing sections like Args, Returns, Raises, and Examples. It also specifies the required order of these sections and notes that properties should not have such sections.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/docs/dev/documentation.md#_snippet_0
+
+LANGUAGE: python
+CODE:
+```
+def example(param1: int, param2: str) -> bool:
+    """
+    Example function with PEP 484 type annotations.
+
+    Args:
+      param1: The first parameter.
+      param2: The second parameter.
+
+    Returns:
+      The return value. True for success, False otherwise.
+
+    Raises:
+      AttributeError: The ``Raises`` section is a list of all exceptions
+        that are relevant to the interface.
+      ValueError: If `param2` is equal to `param1`.
+
+    Examples:
+        Examples should be written in doctest format, and should illustrate how
+        to use the function.
+
+        >>> print([i for i in example_generator(4)])
+        [0, 1, 2, 3]
+    """
+```
+
+----------------------------------------
+
+TITLE: APIDOC: pypdf.constants.FieldDictionaryAttributes
+DESCRIPTION: Documents the pypdf.constants.FieldDictionaryAttributes class, which defines constant attributes for PDF form field dictionaries. This class specifies common properties found in PDF form fields, with certain members explicitly excluded from documentation.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/docs/modules/constants.rst#_snippet_4
+
+LANGUAGE: APIDOC
+CODE:
+```
+Class: pypdf.constants.FieldDictionaryAttributes
+  Purpose: Defines constant attributes for PDF form field dictionaries.
+  Members: All public and undocumented members, excluding: FT, Parent, Kids, T, TU, TM, V, DV, AA, Opt, attributes, attributes_dict.
+  Inheritance: Shows inheritance hierarchy.
+```
+
+----------------------------------------
+
+TITLE: PyPDF2 Python Version Support Update
+DESCRIPTION: PyPDF2 version 2.0.0 and later require Python 3.6+. Support for Python 2.7 and 3.5 has been officially dropped, aligning the library with more modern Python versions.
+SOURCE: https://github.com/py-pdf/pypdf/blob/main/CHANGELOG.md#_snippet_19
+
+LANGUAGE: APIDOC
+CODE:
+```
+PyPDF2 2.0 requires Python 3.6+.
+Python 2.7 and 3.5 support were dropped.
+```
