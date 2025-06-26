@@ -1,0 +1,89 @@
+{
+  "pdf_file": "first_hundred/the first hundred years Book pg 1-10.pdf",
+  "docx_file": "output/modern_conversion_fixed.docx",
+  "text_comparison": {
+    "similarity_ratio": 0.8984375,
+    "pdf_text_length": 128,
+    "docx_text_length": 128,
+    "missing_text": [],
+    "extra_text": [],
+    "differences": [
+      "--- PDF",
+      "+++ DOCX",
+      "@@ -1 +1 @@",
+      "-THEFIRST HUNDREDYEARS of AVONPARK,FLORIDA by LeomaBradshawMaxwell HistoricalSociety,Inc. andMuseum POBox643 AvonParkFlorida33825",
+      "+THEFIRST HUNDREDYEARS of AVONPARK,FLORIDA by LeomaBradshawMaxwell HistoricalSociety,Inc. andMuseum POBox643 33825FloridaParkAvon"
+    ],
+    "word_count_pdf": 10,
+    "word_count_docx": 10,
+    "missing_words": [
+      "AvonParkFlorida33825"
+    ],
+    "extra_words": [
+      "33825FloridaParkAvon"
+    ]
+  },
+  "formatting_comparison": {
+    "fonts": {
+      "pdf_fonts": [
+        "Untitled"
+      ],
+      "docx_fonts": [
+        "/Untitled"
+      ],
+      "missing_fonts": [
+        "Untitled"
+      ],
+      "font_mapping": {}
+    },
+    "colors": {
+      "pdf_colors": [
+        0
+      ],
+      "docx_colors": [],
+      "color_accuracy": 0
+    },
+    "layout": {
+      "pdf_blocks": 10,
+      "docx_paragraphs": 10,
+      "structure_similarity": 0
+    }
+  },
+  "improvement_suggestions": [
+    {
+      "type": "text_accuracy",
+      "priority": "high",
+      "issue": "Text similarity is only 89.8%",
+      "suggestion": "Review text extraction settings and consider OCR for scanned content",
+      "missing_words": [
+        "AvonParkFlorida33825"
+      ]
+    },
+    {
+      "type": "spacing",
+      "priority": "medium",
+      "issue": "Potential word spacing issues detected",
+      "suggestion": "Add spaces between concatenated words",
+      "examples": [
+        "AvonParkFlorida33825"
+      ]
+    },
+    {
+      "type": "fonts",
+      "priority": "medium",
+      "issue": "1 fonts from PDF not found in DOCX",
+      "suggestion": "Install missing fonts or provide font mapping",
+      "missing_fonts": [
+        "Untitled"
+      ]
+    }
+  ],
+  "overall_score": {
+    "overall": 73.9,
+    "text_accuracy": 89.8,
+    "font_preservation": 0.0,
+    "layout_similarity": 100.0,
+    "grade": "C"
+  },
+  "timestamp": "1750946031.2850823"
+}

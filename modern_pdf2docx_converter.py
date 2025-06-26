@@ -18,7 +18,7 @@ from io import BytesIO
 
 # Core libraries
 try:
-    from pypdf import PdfReader
+    import fitz  # PyMuPDF
     from docx import Document
     from docx.shared import Inches, Pt, RGBColor
     from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_LINE_SPACING
@@ -27,7 +27,7 @@ try:
     from PIL import Image
 except ImportError as e:
     print(f"Missing required library: {e}")
-    print("Install with: pip install pypdf python-docx pillow")
+    print("Install with: pip install PyMuPDF python-docx pillow")
     sys.exit(1)
 
 # Set up logging
@@ -80,18 +80,19 @@ class ModernPDF2DOCXConverter:
     def extract_pdf_content(self, pdf_path: str, password: str = None, 
                           start_page: int = 0, end_page: int = None, 
                           pages: List[int] = None) -> Dict:
-        """Extract text and images from PDF using pypdf"""
+        """Extract text and images from PDF using PyMuPDF"""
         try:
-            self.pdf_reader = PdfReader(pdf_path)
+            self.pdf_document = fitz.open(pdf_path)
             
             # Handle password protection
-            if self.pdf_reader.is_encrypted:
+            if self.pdf_document.needs_pass:
                 if password:
-                    self.pdf_reader.decrypt(password)
+                    if not self.pdf_document.authenticate(password):
+                        raise ValueError("Invalid password provided")
                 else:
                     raise ValueError("PDF is encrypted but no password provided")
             
-            total_pages = len(self.pdf_reader.pages)
+            total_pages = len(self.pdf_document)
             logger.info(f"PDF has {total_pages} pages")
             
             # Determine which pages to process
@@ -110,7 +111,7 @@ class ModernPDF2DOCXConverter:
             
             # Extract content from each page
             for page_idx in page_indices:
-                page = self.pdf_reader.pages[page_idx]
+                page = self.pdf_document[page_idx]
                 page_content = self._extract_page_content(page, page_idx)
                 extracted_content['pages'].append(page_content)
                 self.conversion_stats['pages_processed'] += 1
@@ -121,6 +122,9 @@ class ModernPDF2DOCXConverter:
         except Exception as e:
             logger.error(f"Failed to extract PDF content: {e}")
             return {}
+        finally:
+            if hasattr(self, 'pdf_document'):
+                self.pdf_document.close()
     
     def _extract_page_content(self, page, page_idx: int) -> Dict:
         """Extract text and images from a single PDF page"""
@@ -147,70 +151,82 @@ class ModernPDF2DOCXConverter:
         return page_content
     
     def _extract_text_with_layout(self, page) -> List[Dict]:
-        """Extract text with layout information using pypdf visitor functions"""
+        """Extract text with layout information using PyMuPDF with proper spacing"""
         text_blocks = []
-        current_block = None
         
-        def text_visitor(text, user_matrix, tm_matrix, font_dict, font_size):
-            nonlocal current_block
-            
-            if not text.strip():
-                return
-            
-            # Get position information
-            x, y = tm_matrix[4], tm_matrix[5]
-            
-            # Get font information
-            font_name = font_dict.get('/BaseFont', 'Unknown') if font_dict else 'Unknown'
-            if isinstance(font_name, bytes):
-                font_name = font_name.decode('utf-8', errors='ignore')
-            
-            # Clean font name
-            font_name = re.sub(r'^[A-Z]+\+', '', str(font_name))  # Remove subset prefix
-            
-            text_block = {
-                'text': text,
-                'x': float(x),
-                'y': float(y),
-                'font_name': font_name,
-                'font_size': float(font_size) if font_size else 12.0,
-                'matrix': tm_matrix
-            }
-            
-            text_blocks.append(text_block)
-        
-        # Extract text with visitor
         try:
-            page.extract_text(visitor_text=text_visitor)
-        except Exception as e:
-            logger.warning(f"Text extraction with visitor failed: {e}, falling back to simple extraction")
-            # Fallback to simple text extraction
-            simple_text = page.extract_text()
-            if simple_text.strip():
+            # Use PyMuPDF blocks method for better text spacing
+            blocks = page.get_text("blocks")
+            page_text_parts = []
+            
+            for block in blocks:
+                if len(block) >= 5 and block[4].strip():  # Text block
+                    text = block[4].strip()
+                    bbox = block[:4]  # x0, y0, x1, y1
+                    
+                    page_text_parts.append({
+                        'text': text,
+                        'x': bbox[0],
+                        'y': bbox[1],
+                        'bbox': bbox
+                    })
+            
+            # Sort by position (top to bottom, left to right)
+            # In PDF coordinates, Y increases downward, so we sort by Y ascending
+            page_text_parts.sort(key=lambda p: (p['y'], p['x']))
+            
+            # Combine text parts with proper spacing
+            if page_text_parts:
+                combined_text = ' '.join([part['text'] for part in page_text_parts])
+                
                 text_blocks.append({
-                    'text': simple_text,
-                    'x': 0,
-                    'y': 0,
+                    'text': combined_text.strip(),
+                    'x': page_text_parts[0]['x'],
+                    'y': page_text_parts[0]['y'],
                     'font_name': 'Unknown',
                     'font_size': 12.0,
-                    'matrix': [1, 0, 0, 1, 0, 0]
+                    'matrix': [1, 0, 0, 1, 0, 0],
+                    'parts': page_text_parts
                 })
-        
-        # Sort text blocks by position (top to bottom, left to right)
-        text_blocks.sort(key=lambda b: (-b['y'], b['x']))
+            
+        except Exception as e:
+            logger.warning(f"PyMuPDF text extraction failed: {e}")
+            # Fallback to simple extraction
+            try:
+                text = page.get_text()
+                if text.strip():
+                    text_blocks.append({
+                        'text': text.strip(),
+                        'x': 0,
+                        'y': 0,
+                        'font_name': 'Unknown',
+                        'font_size': 12.0,
+                        'matrix': [1, 0, 0, 1, 0, 0]
+                    })
+            except Exception as e2:
+                logger.error(f"Fallback text extraction also failed: {e2}")
         
         return text_blocks
     
     def _extract_images_from_page(self, page, page_idx: int) -> List[Dict]:
-        """Extract images from a PDF page"""
+        """Extract images from a PDF page using PyMuPDF"""
         images = []
         
         try:
-            for img_idx, image_file_object in enumerate(page.images):
+            image_list = page.get_images()
+            
+            for img_idx, img in enumerate(image_list):
                 try:
-                    # Get image data
-                    image_data = image_file_object.data
-                    image_name = image_file_object.name or f"image_{page_idx}_{img_idx}"
+                    # Get image reference
+                    xref = img[0]
+                    
+                    # Extract image data
+                    base_image = self.pdf_document.extract_image(xref)
+                    image_data = base_image["image"]
+                    image_ext = base_image["ext"]
+                    
+                    # Create image name
+                    image_name = f"image_{page_idx}_{img_idx}.{image_ext}"
                     
                     # Try to get image dimensions
                     try:
@@ -219,7 +235,7 @@ class ModernPDF2DOCXConverter:
                         format_type = pil_image.format
                     except Exception:
                         width, height = 100, 100  # Default size
-                        format_type = 'Unknown'
+                        format_type = image_ext.upper()
                     
                     image_info = {
                         'name': image_name,
