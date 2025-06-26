@@ -1,0 +1,33 @@
+# Modern PDF to DOCX conversion libraries
+pypdf>=5.6.0
+python-docx>=1.2.0
+Pillow>=11.0.0
+
+# Legacy PDF processing (for comparison/fallback)
+PyMuPDF>=1.19.0
+pdf2docx>=0.5.6
+
+# Font and template handling
+fonttools>=4.24.0
+docxtpl>=0.16.0
+
+# Image and document processing
+numpy>=1.17.2
+opencv-python-headless>=4.5
+
+# Font management and embedding
+freetype-py>=2.3.0
+reportlab>=3.6.0
+
+# CLI and utilities
+click>=8.0.0
+rich>=12.0.0
+pathlib2>=2.3.0
+
+# Development and testing
+pytest>=7.0.0
+pytest-cov>=4.0.0
+
+# Web interface
+flask>=2.0.0
+werkzeug>=2.0.0

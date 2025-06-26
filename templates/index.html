@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF to DOCX Converter</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+        input[type="file"], input[type="text"], input[type="number"], input[type="password"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+        .submit-btn {
+            background-color: #007bff;
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            width: 100%;
+        }
+        .submit-btn:hover {
+            background-color: #0056b3;
+        }
+        .flash-messages {
+            margin-bottom: 20px;
+        }
+        .flash-message {
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+        .flash-error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .flash-success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .help-text {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+        .advanced-options {
+            border: 1px solid #ddd;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+            background-color: #f9f9f9;
+        }
+        .advanced-options h3 {
+            margin-top: 0;
+            color: #555;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔄 PDF to DOCX Converter</h1>
+        <p style="text-align: center; color: #666; margin-bottom: 30px;">
+            Convert PDF files to DOCX format with template and font support
+        </p>
+        
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <div class="flash-messages">
+                    {% for message in messages %}
+                        <div class="flash-message flash-error">{{ message }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+        
+        <form action="{{ url_for('convert_pdf') }}" method="post" enctype="multipart/form-data">
+            <div class="form-group">
+                <label for="pdf_file">📄 PDF File (Required)</label>
+                <input type="file" id="pdf_file" name="pdf_file" accept=".pdf" required>
+                <div class="help-text">Select the PDF file you want to convert to DOCX</div>
+            </div>
+            
+            <div class="form-group">
+                <label for="template_file">📋 Template File (Optional)</label>
+                <input type="file" id="template_file" name="template_file" accept=".dotx,.docx">
+                <div class="help-text">Upload a Word template (.dotx or .docx) to apply styles</div>
+            </div>
+            
+            <div class="form-group">
+                <label for="font_files">🔤 Font Files (Optional)</label>
+                <input type="file" id="font_files" name="font_files" accept=".ttf,.otf" multiple>
+                <div class="help-text">Upload custom fonts (.ttf or .otf files) - you can select multiple files</div>
+            </div>
+            
+            <div class="advanced-options">
+                <h3>⚙️ Advanced Options</h3>
+                
+                <div class="form-group">
+                    <label for="start_page">Start Page (0-indexed)</label>
+                    <input type="number" id="start_page" name="start_page" min="0" placeholder="0">
+                    <div class="help-text">Page to start conversion from (leave empty for first page)</div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="end_page">End Page (exclusive)</label>
+                    <input type="number" id="end_page" name="end_page" min="1" placeholder="">
+                    <div class="help-text">Page to end conversion at (leave empty for last page)</div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="pages">Specific Pages</label>
+                    <input type="text" id="pages" name="pages" placeholder="0,2,4">
+                    <div class="help-text">Comma-separated page numbers (0-indexed) to convert specific pages</div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="password">PDF Password</label>
+                    <input type="password" id="password" name="password" placeholder="">
+                    <div class="help-text">Enter password if the PDF is encrypted</div>
+                </div>
+            </div>
+            
+            <div class="form-group" style="margin-top: 30px;">
+                <button type="submit" class="submit-btn">🚀 Convert PDF to DOCX</button>
+            </div>
+        </form>
+        
+        <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; text-align: center; color: #666;">
+            <p><strong>Advanced Features:</strong></p>
+            <ul style="text-align: left; display: inline-block;">
+                <li>✅ Text extraction (not full-page images)</li>
+                <li>✅ Template margins and formatting</li>
+                <li>✅ Custom font application</li>
+                <li>✅ Image cropping and resizing</li>
+                <li>✅ Page range selection</li>
+                <li>✅ Password-protected PDFs</li>
+                <li>✅ Proper content fitting within margins</li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>
